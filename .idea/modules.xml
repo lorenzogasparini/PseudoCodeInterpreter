@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/PseudoCode.iml" filepath="$PROJECT_DIR$/PseudoCode.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/PseudoCodeInterpreter.iml" filepath="$PROJECT_DIR$/.idea/PseudoCodeInterpreter.iml" />
     </modules>
   </component>

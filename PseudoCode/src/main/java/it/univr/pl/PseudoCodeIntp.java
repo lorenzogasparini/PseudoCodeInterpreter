@@ -1,0 +1,307 @@
+package it.univr.pl;
+
+import it.univr.pl.type.ExpType;
+import it.univr.pl.type.SimpleType;
+import it.univr.pl.type.TypeUtils;
+import it.univr.pl.value.*;
+import org.apache.commons.text.StringEscapeUtils;
+
+public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
+
+    private final Mem mem;
+
+    public PseudoCodeIntp(Mem mem) {
+        // Scoping: crea una nuova memoria isolata basata sulla precedente
+        this.mem = new Mem(mem);
+    }
+
+    public PseudoCodeIntp() {
+        mem = new Mem();
+    }
+
+    public Mem getMem() {
+        return mem;
+    }
+
+    private ComValue visitCom(PseudoCodeParser.ComContext ctx) {
+        return (ComValue) visit(ctx);
+    }
+
+    private ExpValue<?> visitExp(PseudoCodeParser.ExpContext ctx) {
+        return (ExpValue<?>) visit(ctx);
+    }
+
+    private NumValue<?> visitNumExp(PseudoCodeParser.ExpContext ctx) {
+        return (NumValue<?>) visitExp(ctx);
+    }
+
+    private BoolValue visitBoolExp(PseudoCodeParser.ExpContext ctx) {
+        return (BoolValue) visitExp(ctx);
+    }
+
+    private StringValue visitStringExp(PseudoCodeParser.ExpContext ctx) {
+        return (StringValue) visitExp(ctx);
+    }
+
+    private double unwrapToDouble(NumValue<?> numValue) {
+        return numValue.toJavaValue().doubleValue();
+    }
+
+    @Override
+    public ComValue visitMain(PseudoCodeParser.MainContext ctx) {
+        return visitCom(ctx.com());
+    }
+
+    @Override
+    public ComValue visitDecl(PseudoCodeParser.DeclContext ctx) {
+        ExpType type = TypeUtils.fromString(ctx.TYPE().getText());
+        String id = ctx.ID().getText();
+
+        mem.add(id, type); // Alloca la variabile in memoria
+
+        if (ctx.exp() != null) {
+            ExpValue<?> val = visitExp(ctx.exp());
+            mem.updateValue(id, val);
+        }
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitAssign(PseudoCodeParser.AssignContext ctx) {
+        String id = ctx.ID().getText();
+        ExpValue<?> v = visitExp(ctx.exp());
+        mem.updateValue(id, v); // Sicuro grazie al Type Checking preventivo
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitAssignOp(PseudoCodeParser.AssignOpContext ctx) {
+        // Requisito Avanzato 1: += e -=
+        String id = ctx.ID().getText();
+        NumValue<?> currentVal = (NumValue<?>) mem.getValue(id);
+        NumValue<?> rightVal = visitNumExp(ctx.exp());
+
+        double result = ctx.op.getType() == PseudoCodeParser.PLUS_ASSIGN
+                ? unwrapToDouble(currentVal) + unwrapToDouble(rightVal)
+                : unwrapToDouble(currentVal) - unwrapToDouble(rightVal);
+
+        // Mantiene il tipo originale se entrambi sono interi
+        if (currentVal instanceof IntValue && rightVal instanceof IntValue) {
+            mem.updateValue(id, new IntValue((int) result));
+        } else {
+            mem.updateValue(id, new DecValue(result));
+        }
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitIncDec(PseudoCodeParser.IncDecContext ctx) {
+        // Requisito Avanzato 1: ++ e --
+        String id = ctx.ID().getText();
+        NumValue<?> currentVal = (NumValue<?>) mem.getValue(id);
+
+        double result = ctx.op.getType() == PseudoCodeParser.INC
+                ? unwrapToDouble(currentVal) + 1
+                : unwrapToDouble(currentVal) - 1;
+
+        if (currentVal instanceof IntValue) {
+            mem.updateValue(id, new IntValue((int) result));
+        } else {
+            mem.updateValue(id, new DecValue(result));
+        }
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitIfElse(PseudoCodeParser.IfElseContext ctx) {
+        PseudoCodeIntp interpreter = new PseudoCodeIntp(mem); // Crea nuovo scope
+
+        if (visitBoolExp(ctx.exp()).toJavaValue()) {
+            interpreter.visitCom(ctx.com(0));
+        } else if (ctx.com().size() > 1) { // Ramo else opzionale
+            interpreter.visitCom(ctx.com(1));
+        }
+
+        mem.updateValues(interpreter.getMem()); // Sincronizza solo le variabili preesistenti
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitWhile(PseudoCodeParser.WhileContext ctx) {
+        if (!visitBoolExp(ctx.exp()).toJavaValue()) {
+            return ComValue.INSTANCE;
+        }
+
+        PseudoCodeIntp interpreter = new PseudoCodeIntp(mem);
+        interpreter.visitCom(ctx.com());
+        mem.updateValues(interpreter.getMem());
+
+        return visitWhile(ctx); // Ricorsione per il ciclo
+    }
+
+    @Override
+    public ComValue visitSeq(PseudoCodeParser.SeqContext ctx) {
+        visitCom(ctx.com(0));
+        return visitCom(ctx.com(1));
+    }
+
+    @Override
+    public ComValue visitOut(PseudoCodeParser.OutContext ctx) {
+        // Stampa a video il valore effettivo dell'espressione
+        System.out.println(visitExp(ctx.exp()).toJavaValue());
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ExpValue<?> visitTernary(PseudoCodeParser.TernaryContext ctx) {
+        // Requisito Avanzato 2: Operatore Ternario (? :)
+        boolean condition = visitBoolExp(ctx.exp(0)).toJavaValue();
+        return condition ? visitExp(ctx.exp(1)) : visitExp(ctx.exp(2));
+    }
+
+    @Override
+    public ExpValue<?> visitMulDivMod(PseudoCodeParser.MulDivModContext ctx) {
+        NumValue<?> left = visitNumExp(ctx.exp(0));
+        NumValue<?> right = visitNumExp(ctx.exp(1));
+
+        double leftVal = unwrapToDouble(left);
+        double rightVal = unwrapToDouble(right);
+
+        // Requisito Obbligatorio: Gestione programmatica degli errori a runtime
+        if ((ctx.op.getType() == PseudoCodeParser.DIV || ctx.op.getType() == PseudoCodeParser.MOD) && rightVal == 0) {
+            throw new RuntimeException("Divisione per zero a tempo di esecuzione!");
+        }
+
+        Double result = switch (ctx.op.getType()) {
+            case PseudoCodeParser.DIV -> leftVal / rightVal;
+            case PseudoCodeParser.MUL -> leftVal * rightVal;
+            case PseudoCodeParser.MOD -> leftVal % rightVal;
+            default -> null; // irraggiungibile
+        };
+
+        if (left instanceof IntValue && right instanceof IntValue) {
+            return new IntValue(result.intValue());
+        } else {
+            return new DecValue(result);
+        }
+    }
+
+    @Override
+    public ExpValue<?> visitAddSub(PseudoCodeParser.AddSubContext ctx) {
+        NumValue<?> left = visitNumExp(ctx.exp(0));
+        NumValue<?> right = visitNumExp(ctx.exp(1));
+
+        Double result = switch (ctx.op.getType()) {
+            case PseudoCodeParser.ADD -> unwrapToDouble(left) + unwrapToDouble(right);
+            case PseudoCodeParser.SUB -> unwrapToDouble(left) - unwrapToDouble(right);
+            default -> null;
+        };
+
+        if (left instanceof IntValue && right instanceof IntValue) {
+            return new IntValue(result.intValue());
+        } else {
+            return new DecValue(result);
+        }
+    }
+
+    @Override
+    public BoolValue visitEqExp(PseudoCodeParser.EqExpContext ctx) {
+        ExpValue<?> left = visitExp(ctx.exp(0));
+        ExpValue<?> right = visitExp(ctx.exp(1));
+
+        return switch (ctx.op.getType()) {
+            case PseudoCodeParser.EQQ -> new BoolValue(left.equals(right));
+            case PseudoCodeParser.NEQ -> new BoolValue(!left.equals(right));
+            default -> null;
+        };
+    }
+
+    @Override
+    public BoolValue visitCmpExp(PseudoCodeParser.CmpExpContext ctx) {
+        NumValue<?> left = visitNumExp(ctx.exp(0));
+        NumValue<?> right = visitNumExp(ctx.exp(1));
+
+        return switch (ctx.op.getType()) {
+            case PseudoCodeParser.GEQ -> new BoolValue(unwrapToDouble(left) >= unwrapToDouble(right));
+            case PseudoCodeParser.LEQ -> new BoolValue(unwrapToDouble(left) <= unwrapToDouble(right));
+            case PseudoCodeParser.LT -> new BoolValue(unwrapToDouble(left) < unwrapToDouble(right));
+            case PseudoCodeParser.GT -> new BoolValue(unwrapToDouble(left) > unwrapToDouble(right));
+            default -> null;
+        };
+    }
+
+    @Override
+    public BoolValue visitAndOr(PseudoCodeParser.AndOrContext ctx) {
+        BoolValue left = visitBoolExp(ctx.exp(0));
+        BoolValue right = visitBoolExp(ctx.exp(1));
+
+        return switch (ctx.op.getType()) {
+            case PseudoCodeParser.AND -> new BoolValue(left.toJavaValue() && right.toJavaValue());
+            case PseudoCodeParser.OR -> new BoolValue(left.toJavaValue() || right.toJavaValue());
+            default -> null;
+        };
+    }
+
+    @Override
+    public BoolValue visitNot(PseudoCodeParser.NotContext ctx) {
+        return new BoolValue(!visitBoolExp(ctx.exp()).toJavaValue());
+    }
+
+    @Override
+    public ExpValue<?> visitPow(PseudoCodeParser.PowContext ctx) {
+        NumValue<?> base = visitNumExp(ctx.exp(0));
+        NumValue<?> exponent = visitNumExp(ctx.exp(1));
+
+        double result = Math.pow(unwrapToDouble(base), unwrapToDouble(exponent));
+
+        if (base instanceof IntValue && exponent instanceof IntValue) {
+            return new IntValue((int) result);
+        } else {
+            return new DecValue(result);
+        }
+    }
+
+    @Override
+    public ExpValue<?> visitParExp(PseudoCodeParser.ParExpContext ctx) {
+        return visitExp(ctx.exp());
+    }
+
+    @Override
+    public ExpValue<?> visitId(PseudoCodeParser.IdContext ctx) {
+        return mem.getValue(ctx.ID().getText());
+    }
+
+    @Override
+    public NumValue<?> visitNumeric(PseudoCodeParser.NumericContext ctx) {
+        return (NumValue<?>) visit(ctx.num());
+    }
+
+    @Override
+    public IntValue visitIntNum(PseudoCodeParser.IntNumContext ctx) {
+        return new IntValue(Integer.parseInt(ctx.INT().getText()));
+    }
+
+    @Override
+    public DecValue visitDecNum(PseudoCodeParser.DecNumContext ctx) {
+        return new DecValue(Double.parseDouble(ctx.DEC().getText()));
+    }
+
+    @Override
+    public BoolValue visitBoolean(PseudoCodeParser.BooleanContext ctx) {
+        return new BoolValue(Boolean.parseBoolean(ctx.BOOL().getText()));
+    }
+
+    @Override
+    public StringValue visitString(PseudoCodeParser.StringContext ctx) {
+        // Rimuove i doppi apici e converte le sequenze di escape (\n, \t) in veri caratteri
+        String str = ctx.STRING().getText().substring(1, ctx.STRING().getText().length() - 1);
+        return new StringValue(StringEscapeUtils.unescapeJava(str));
+    }
+
+    @Override
+    public CharValue visitChar(PseudoCodeParser.CharContext ctx) {
+        // Prende il carattere esatto escludendo i singoli apici
+        char c = ctx.CHAR().getText().charAt(1);
+        return new CharValue(c);
+    }
+}

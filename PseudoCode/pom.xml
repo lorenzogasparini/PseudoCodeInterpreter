@@ -25,6 +25,12 @@
             <artifactId>commons-text</artifactId>
             <version>1.15.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -33,18 +39,17 @@
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
                 <version>4.13.2</version>
-                <configuration>
-                    <visitor>true</visitor>
-                    <listener>false</listener>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>antlr4</goal>
                         </goals>
-                        <phase>generate-sources</phase>
                     </execution>
                 </executions>
+                <configuration>
+                    <visitor>true</visitor>
+                    <sourceDirectory>src/main/antlr4</sourceDirectory>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

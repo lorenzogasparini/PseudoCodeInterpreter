@@ -28,7 +28,8 @@ exp : num                                 # numeric
     | exp QMARK exp COLON exp             # ternary     // Avanzato 2: operatore ternario (condizione ? expvero : expfalso)
     ;
 
-num : INT | DEC ;
+num : INT # intNum
+    | DEC # decNum ;
 
 // Operatori base
 ADD : '+'; SUB : '-'; MUL : '*'; DIV : '/'; MOD : 'mod'; POW : '^';
