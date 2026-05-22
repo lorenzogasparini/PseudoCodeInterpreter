@@ -9,6 +9,7 @@ public class TypeUtils {
             case "int" -> SimpleType.INT;
             case "dec" -> SimpleType.DEC;
             case "bool" -> SimpleType.BOOL;
+            case "char" -> SimpleType.CHAR;
             case "string" -> SimpleType.STRING;
 
             default -> null;
@@ -22,6 +23,8 @@ public class TypeUtils {
             return SimpleType.DEC;
         if (value instanceof BoolValue)
             return SimpleType.BOOL;
+        if (value instanceof CharValue)
+            return SimpleType.CHAR;
         if (value instanceof StringValue)
             return SimpleType.STRING;
 

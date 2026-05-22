@@ -1,6 +1,4 @@
-import it.univr.pl.Mem;
-import it.univr.pl.PseudoCodeIntp;
-import it.univr.pl.PseudoCodeTS;
+import it.univr.pl.*;
 import it.univr.pl.exception.TypeMismatchException;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;

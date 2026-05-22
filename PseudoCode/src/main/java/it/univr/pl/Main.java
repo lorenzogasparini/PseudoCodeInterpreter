@@ -9,8 +9,18 @@ public class Main {
 
     private static final String IN =
             """
-            int v <- 9;
-            string s
+            int counter <- 0;
+            int flag <- 0;
+            repeat while (counter < 5) {
+                counter++
+            };
+            if (counter == 5) then {
+                flag <- 1
+            } else {
+                flag <- 2
+            };
+            int input <- read int;
+            int rand1 <- input @ int rand2 <- input
             """;
 
     public static void main(String[] args) {

@@ -1,10 +1,15 @@
 package it.univr.pl;
 
+import it.univr.pl.exception.TypeMismatchException;
+import it.univr.pl.type.ComType;
 import it.univr.pl.type.ExpType;
 import it.univr.pl.type.SimpleType;
 import it.univr.pl.type.TypeUtils;
 import it.univr.pl.value.*;
 import org.apache.commons.text.StringEscapeUtils;
+
+import java.util.Random;
+import java.util.Scanner;
 
 public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
@@ -140,6 +145,13 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
     }
 
     @Override
+    public ComValue visitNonDet(PseudoCodeParser.NonDetContext ctx) {
+        int rndIdx = new Random().nextInt(ctx.com().size());
+        visitCom(ctx.com(rndIdx));
+        return ComValue.INSTANCE;
+    }
+
+    @Override
     public ComValue visitSeq(PseudoCodeParser.SeqContext ctx) {
         visitCom(ctx.com(0));
         return visitCom(ctx.com(1));
@@ -152,12 +164,6 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
         return ComValue.INSTANCE;
     }
 
-    @Override
-    public ExpValue<?> visitTernary(PseudoCodeParser.TernaryContext ctx) {
-        // Requisito Avanzato 2: Operatore Ternario (? :)
-        boolean condition = visitBoolExp(ctx.exp(0)).toJavaValue();
-        return condition ? visitExp(ctx.exp(1)) : visitExp(ctx.exp(2));
-    }
 
     @Override
     public ExpValue<?> visitMulDivMod(PseudoCodeParser.MulDivModContext ctx) {
@@ -264,6 +270,44 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
     @Override
     public ExpValue<?> visitParExp(PseudoCodeParser.ParExpContext ctx) {
         return visitExp(ctx.exp());
+    }
+
+    @Override
+    public ExpValue<?> visitTernary(PseudoCodeParser.TernaryContext ctx) {
+        // Requisito Avanzato 1: Operatore Ternario (? :)
+        boolean condition = visitBoolExp(ctx.exp(0)).toJavaValue();
+        return condition ? visitExp(ctx.exp(1)) : visitExp(ctx.exp(2));
+    }
+
+    @Override
+    public ExpValue<?> visitReadExp (PseudoCodeParser.ReadExpContext ctx) {
+        Scanner scanner = new Scanner(System.in);
+        SimpleType inputType = SimpleType.valueOf(ctx.TYPE().getText().toUpperCase());
+
+        return switch (inputType) {
+            case BOOL -> {
+                System.out.println("read [BOOL]: ");
+                yield new BoolValue(scanner.nextBoolean());
+            }
+            case INT -> {
+                System.out.println("read [INT]: ");
+                yield new IntValue(scanner.nextInt());
+            }
+            case DEC -> {
+                System.out.println("read [DEC]: ");
+                yield new DecValue(scanner.nextDouble());
+            }
+            case CHAR -> {
+                System.out.println("read [CHAR]: ");
+                yield new CharValue(scanner.next().charAt(0));
+            }
+            case STRING -> {
+                System.out.println("read [STRING]: ");
+                yield new StringValue(scanner.next());
+            }
+            default -> throw new TypeMismatchException("");
+        };
+
     }
 
     @Override

@@ -134,6 +134,15 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
     }
 
     @Override
+    public ComType visitNonDet(PseudoCodeParser.NonDetContext ctx) {
+        // Controlla che tutti i rami della scelta siano comandi validi
+        for (PseudoCodeParser.ComContext comCtx : ctx.com()) {
+            visitCom(comCtx);
+        }
+        return ComType.INSTANCE;
+    }
+
+    @Override
     public ComType visitSeq(PseudoCodeParser.SeqContext ctx) {
         visitCom(ctx.com(0));
         return visitCom(ctx.com(1));
@@ -154,17 +163,6 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
         return typeMap.get(id);
     }
 
-    @Override
-    public SimpleType visitTernary(PseudoCodeParser.TernaryContext ctx) {
-        visitBoolExp(ctx.exp(0));
-        ExpType left = (ExpType) visit(ctx.exp(1));
-        ExpType right = (ExpType) visit(ctx.exp(2));
-
-        if (!tryToUpcast(left, right)) {
-            throw new TypeMismatchException("Ternary branches must have compatible types.\n@" + ctx.start.getLine());
-        }
-        return left.isCompatible(right) ? (SimpleType) right : (SimpleType) left;
-    }
 
     @Override
     public SimpleType visitMulDivMod(PseudoCodeParser.MulDivModContext ctx) {
@@ -237,6 +235,24 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
     @Override
     public ExpType visitParExp(PseudoCodeParser.ParExpContext ctx) {
         return (ExpType) visit(ctx.exp());
+    }
+
+    @Override
+    public SimpleType visitTernary(PseudoCodeParser.TernaryContext ctx) {
+        visitBoolExp(ctx.exp(0));
+        ExpType left = (ExpType) visit(ctx.exp(1));
+        ExpType right = (ExpType) visit(ctx.exp(2));
+
+        if (!tryToUpcast(left, right)) {
+            throw new TypeMismatchException("Ternary branches must have compatible types.\n@" + ctx.start.getLine());
+        }
+        return left.isCompatible(right) ? (SimpleType) right : (SimpleType) left;
+    }
+
+    @Override
+    public SimpleType visitReadExp(PseudoCodeParser.ReadExpContext ctx) {
+        // Ritorna esattamente il tipo richiesto dopo la parola "read" (es. int, string)
+        return (SimpleType) TypeUtils.fromString(ctx.TYPE().getText());
     }
 
     @Override
