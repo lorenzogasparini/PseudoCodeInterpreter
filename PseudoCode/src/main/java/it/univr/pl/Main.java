@@ -7,7 +7,17 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Main {
 
-    private static final String IN =
+    /* TEST SWITCH:
+
+    switch(x){
+        case 1 : {x <- 2}
+        case 2 : {x <- x^2; y <- x+1}
+        default : {x <- x+3}
+    }
+
+    */
+
+    private static final String IN1 =
             """
             int counter <- 0;
             int flag <- 0;
@@ -23,6 +33,46 @@ public class Main {
             int rand1 <- input @ int rand2 <- input
             """;
 
+    /* Test che deve restituire dalla memoria una variabile di tipo int denominata x di valore 82:
+    { x[int]:82 }
+    Type checking superato con successo!
+    */
+    private static final String IN =
+            """
+            int x <- 1;
+            switch(x){
+                case 0:{
+                    x <- 81;
+                }
+                case 1:{
+                    x <- 82;
+                }
+                default:{
+                    x <- 83
+                }
+            }
+            """;
+
+    /* Test che deve restituire dalla memoria una variabile di tipo int denominata x di valore 83:
+    { x[int]:83 }
+    Type checking superato con successo!
+    */
+    private static final String IN2 =
+            """
+            int x <- 5;
+            switch(x){
+                case 0:{
+                    x <- 81;
+                }
+                case 1:{
+                    x <- 82;
+                }
+                default:{
+                    x <- 83
+                }
+            }
+            """;
+
     public static void main(String[] args) {
         String prog = IN;
         CharStream cs = CharStreams.fromString(prog);
@@ -30,7 +80,6 @@ public class Main {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         PseudoCodeParser parser = new PseudoCodeParser(tokens);
         ParseTree tree = parser.main();
-
         PseudoCodeTS typeSystem = new PseudoCodeTS();
         try {
             typeSystem.visit(tree);

@@ -6,6 +6,7 @@ import it.univr.pl.type.ExpType;
 import it.univr.pl.type.SimpleType;
 import it.univr.pl.type.TypeUtils;
 import it.univr.pl.value.*;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.Random;
@@ -125,6 +126,48 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
             interpreter.visitCom(ctx.com(0));
         } else if (ctx.com().size() > 1) { // Ramo else opzionale
             interpreter.visitCom(ctx.com(1));
+        }
+
+        mem.updateValues(interpreter.getMem()); // Sincronizza solo le variabili preesistenti
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitSwitch(PseudoCodeParser.SwitchContext ctx) {
+        PseudoCodeIntp interpreter = new PseudoCodeIntp(mem); // Crea nuovo scope
+        int i = 0;
+        boolean flag = false;
+
+        ExpValue<?> switchExp = visitExp(ctx.exp());
+
+        for(TerminalNode caseNode : ctx.CASE()) {
+            // 'caseNode' rappresenta il token "case"
+            ExpValue<?> caseValue = getCaseValue(ctx, i);
+
+            if (switchExp != null && switchExp.equals(caseValue)) {
+                flag = true;
+
+                if (ctx.com(i) != null) {
+                    interpreter.visitCom(ctx.com(i));
+                }
+                break;
+                /*
+                Se si verifica la condizione del case terminiamo l'esecuzione
+                (comportamento senza fall-through)
+                */
+            }
+
+            i++;
+        }
+
+        if(!flag && ctx.DEFAULT() != null) {
+            //  Dal momento che il comando di default se esiste si trova per ultimo (vedi grammatica: ...
+            //  (DEFAULT ':' LBRACE com RBRACE)? RBRACE ...) sappiamo di doverlo andare a cercare in ctx.com().size()-1
+            int defaultIndex = ctx.com().size()-1;
+            interpreter.visitCom(ctx.com(defaultIndex));
+            if (defaultIndex >= 0 && ctx.com(defaultIndex) != null) {
+                interpreter.visitCom(ctx.com(defaultIndex));
+            }
         }
 
         mem.updateValues(interpreter.getMem()); // Sincronizza solo le variabili preesistenti
@@ -313,6 +356,25 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
     @Override
     public ExpValue<?> visitId(PseudoCodeParser.IdContext ctx) {
         return mem.getValue(ctx.ID().getText());
+    }
+
+    //  Attraverso questo meotodo otteniamo il valore di case (tra i tipi possibili) corrispettivo all'indice index.
+    private ExpValue<?> getCaseValue(PseudoCodeParser.SwitchContext ctx, int index) {
+        TerminalNode currentCaseNode = ctx.CASE(index);
+
+        if (ctx.INT(index) != null) {
+            return new IntValue(Integer.parseInt(ctx.INT(index).getText()));
+        }
+        if (ctx.STRING(index) != null) {
+            return new StringValue(StringEscapeUtils.unescapeJava(ctx.STRING(index).getText()));
+        }
+        if (ctx.BOOL(index) != null) {
+            return new BoolValue(Boolean.parseBoolean(ctx.BOOL(index).getText()));
+        }
+        //  TODO: Gestione tipi Char e Dec...
+
+        return null;
+
     }
 
     @Override

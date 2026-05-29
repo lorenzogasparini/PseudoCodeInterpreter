@@ -7,7 +7,7 @@ com : TYPE ID (ASSIGN exp)?                                          # decl
     | ID op=(PLUS_ASSIGN | MINUS_ASSIGN) exp                         # assignOp  // Avanzato 1: zucchero sintattico
     | ID op=(INC | DEC_OP)                                           # incDec    // Avanzato 1: zucchero sintattico
     | IF LPAR exp RPAR THEN LBRACE com RBRACE (ELSE LBRACE com RBRACE)? # ifElse
-    | SWITCH LPAR (ID) RPAR LBRACE (CASE (INT | DEC | BOOL | STRING | CHAR) ':' LBRACE com RBRACE)* (DEFAULT ':' LBRACE com RBRACE)? RBRACE  # switch
+    | SWITCH LPAR (exp) RPAR LBRACE (CASE (INT | DEC | BOOL | STRING | CHAR) ':' LBRACE com RBRACE)* (DEFAULT ':' LBRACE com RBRACE)? RBRACE  # switch
     | REPEAT WHILE LPAR exp RPAR LBRACE com RBRACE                   # while
     | com (NONDET com)+                                              # nonDet // Avanzato 2: non determinismo
     | com SEMICOLON com                                              # seq
