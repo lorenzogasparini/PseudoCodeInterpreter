@@ -371,7 +371,12 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
         if (ctx.BOOL(index) != null) {
             return new BoolValue(Boolean.parseBoolean(ctx.BOOL(index).getText()));
         }
-        //  TODO: Gestione tipi Char e Dec...
+        if (ctx.DEC(index) != null) {
+            return new DecValue(Double.parseDouble(ctx.DEC(index).getText()));
+        }
+        if (ctx.CHAR(index) != null) {
+            return new CharValue(ctx.CHAR(index).getText().charAt(1));
+        }
 
         return null;
 
@@ -394,7 +399,9 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
     @Override
     public BoolValue visitBoolean(PseudoCodeParser.BooleanContext ctx) {
-        return new BoolValue(Boolean.parseBoolean(ctx.BOOL().getText()));
+        String prova = ctx.BOOL().getText();
+        String var = ctx.BOOL().getText().equals("T") ? "true" : "false";
+        return new BoolValue(Boolean.parseBoolean(var));
     }
 
     @Override

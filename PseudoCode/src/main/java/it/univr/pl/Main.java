@@ -33,38 +33,15 @@ public class Main {
             int rand1 <- input @ int rand2 <- input
             """;
 
-    /* Test che deve restituire dalla memoria una variabile di tipo int denominata x di valore 82:
-    { x[int]:82 }
-    Type checking superato con successo!
-    */
     private static final String IN =
             """
-            int x <- 1;
-            switch(x){
-                case 0:{
+            dec y <- 1.0;
+            int x <- 0;
+            switch(y){
+                case 1.0:{
                     x <- 81;
                 }
-                case 1:{
-                    x <- 82;
-                }
-                default:{
-                    x <- 83
-                }
-            }
-            """;
-
-    /* Test che deve restituire dalla memoria una variabile di tipo int denominata x di valore 83:
-    { x[int]:83 }
-    Type checking superato con successo!
-    */
-    private static final String IN2 =
-            """
-            int x <- 5;
-            switch(x){
-                case 0:{
-                    x <- 81;
-                }
-                case 1:{
+                case 2.0:{
                     x <- 82;
                 }
                 default:{

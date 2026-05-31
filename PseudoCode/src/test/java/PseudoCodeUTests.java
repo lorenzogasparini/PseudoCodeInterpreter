@@ -130,4 +130,51 @@ public class PseudoCodeUTests {
 
         assertTrue(exception.getMessage().contains("Divisione per zero"));
     }
+
+    @Test
+    public void testInterpreteCostruttoSwitchDefaultCase() {
+        String code = """
+                int x <- 5;
+                switch(x){
+                    case 0:{
+                        x <- 81;
+                    }
+                    case 1:{
+                        x <- 82;
+                    }
+                    default:{
+                        x <- 83
+                    }
+                }
+                """;
+        Mem mem = runCode(code);
+
+        assertEquals(83, mem.getValue("x").toJavaValue());
+    }
+
+    @Test
+    public void testInterpreteCostruttoSwitchCase() {
+        String code = """
+            int x <- 1;
+            switch(x){
+                case 0:{
+                    x <- 81;
+                }
+                case 1:{
+                    x <- 82;
+                }
+                default:{
+                    x <- 83
+                }
+            }
+            """;
+        Mem mem = runCode(code);
+
+        assertEquals(82, mem.getValue("x").toJavaValue());
+    }
+
+    @Test
+    public void testInterpeteCostruttoSwitchTipi() {
+        //  TODO : da implementare test dell'inteprete con costrutto switch con diversi tipi
+    }
 }
