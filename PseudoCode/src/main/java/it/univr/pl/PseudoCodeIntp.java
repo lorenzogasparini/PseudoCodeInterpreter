@@ -366,7 +366,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
             return new IntValue(Integer.parseInt(ctx.INT(index).getText()));
         }
         if (ctx.STRING(index) != null) {
-            return new StringValue(StringEscapeUtils.unescapeJava(ctx.STRING(index).getText()));
+            return new StringValue(StringEscapeUtils.unescapeJava(ctx.STRING(index).getText().substring(1, ctx.STRING(index).getText().length() - 1)));
         }
         if (ctx.BOOL(index) != null) {
             return new BoolValue(Boolean.parseBoolean(ctx.BOOL(index).getText()));

@@ -24,7 +24,7 @@ public class Main {
             repeat while (counter < 5) {
                 counter++
             };
-            if (counter == 5) then {
+            if ('a') then {
                 flag <- 1
             } else {
                 flag <- 2
@@ -34,21 +34,26 @@ public class Main {
             """;
 
     private static final String IN =
-            """
-            dec y <- 1.0;
-            int x <- 0;
-            switch(y){
-                case 1.0:{
-                    x <- 81;
-                }
-                case 2.0:{
-                    x <- 82;
-                }
-                default:{
-                    x <- 83
-                }
-            }
-            """;
+    """
+    int y <- 1;
+    int x <- 0;
+    switch(y){
+        case 1:{
+            x <- 81
+        }
+        case "asd":{
+            x <- 81
+        }
+        case 12:{
+            x <- 82
+        }
+        default:{
+            x <- 83
+        }
+    }
+    """;
+
+
 
     public static void main(String[] args) {
         String prog = IN;

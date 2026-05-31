@@ -120,7 +120,8 @@ public class PseudoCodeUTests {
         String code = """
                 int a <- 10;
                 int b <- 0;
-                int c <- a / b
+                int c <- a / b;
+                disp c
                 """;
 
         // Ci aspettiamo che l'Interprete si accorga della divisione per zero
@@ -137,10 +138,10 @@ public class PseudoCodeUTests {
                 int x <- 5;
                 switch(x){
                     case 0:{
-                        x <- 81;
+                        x <- 81
                     }
                     case 1:{
-                        x <- 82;
+                        x <- 82
                     }
                     default:{
                         x <- 83
@@ -158,10 +159,10 @@ public class PseudoCodeUTests {
             int x <- 1;
             switch(x){
                 case 0:{
-                    x <- 81;
+                    x <- 81
                 }
                 case 1:{
-                    x <- 82;
+                    x <- 82
                 }
                 default:{
                     x <- 83
@@ -175,6 +176,45 @@ public class PseudoCodeUTests {
 
     @Test
     public void testInterpeteCostruttoSwitchTipi() {
-        //  TODO : da implementare test dell'inteprete con costrutto switch con diversi tipi
+        String code = """
+                char y <- 'a';
+                int x <- 0;
+                switch(y){
+                    case 'a':{
+                        x <- 81
+                    }
+                    case 'b':{
+                        x <- 82
+                    }
+                    default:{
+                        x <- 83
+                    }
+                }
+                """;
+        Mem mem = runCode(code);
+
+        assertEquals(81, mem.getValue("x").toJavaValue());
+    }
+
+    @Test
+    public void testInterpreteCostruttoSwitchTipoString() {
+        String code = """
+                string y <- "aasd";
+                int x <- 0;
+                switch(y){
+                    case "asdsadad":{
+                       x <- 81
+                    }
+                    case "aasd":{
+                       x <- 82
+                    }
+                    default:{
+                       x <- 83
+                    }
+                }
+                """;
+        Mem mem = runCode(code);
+
+        assertEquals(82, mem.getValue("x").toJavaValue());
     }
 }

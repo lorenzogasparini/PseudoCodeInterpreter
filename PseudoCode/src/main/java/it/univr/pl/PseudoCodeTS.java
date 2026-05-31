@@ -3,6 +3,10 @@ package it.univr.pl;
 import it.univr.pl.exception.TypeMismatchException;
 import it.univr.pl.exception.VarDeclarationException;
 import it.univr.pl.type.*;
+import it.univr.pl.value.*;
+import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.commons.text.StringEscapeUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +48,29 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
 
     private boolean tryToUpcast(ExpType typeA, ExpType typeB) {
         return typeA == typeB || typeA.isCompatible(typeB) || typeB.isCompatible(typeA);
+    }
+
+    //  Attraverso questo meotodo otteniamo il valore di case (tra i tipi possibili) corrispettivo all'indice index.
+    private ExpValue<?> getCaseValue(PseudoCodeParser.SwitchContext ctx, int index) {
+        TerminalNode currentCaseNode = ctx.CASE(index);
+
+        if (ctx.INT(index) != null) {
+            return new IntValue(Integer.parseInt(ctx.INT(index).getText()));
+        }
+        if (ctx.STRING(index) != null) {
+            return new StringValue(StringEscapeUtils.unescapeJava(ctx.STRING(index).getText().substring(1, ctx.STRING(index).getText().length() - 1)));
+        }
+        if (ctx.BOOL(index) != null) {
+            return new BoolValue(Boolean.parseBoolean(ctx.BOOL(index).getText()));
+        }
+        if (ctx.DEC(index) != null) {
+            return new DecValue(Double.parseDouble(ctx.DEC(index).getText()));
+        }
+        if (ctx.CHAR(index) != null) {
+            return new CharValue(ctx.CHAR(index).getText().charAt(1));
+        }
+
+        return null;
     }
 
     @Override
@@ -123,6 +150,37 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
             PseudoCodeTS typeSystemElse = new PseudoCodeTS(typeMap);
             typeSystemElse.visitCom(ctx.com(1));
         }
+        return ComType.INSTANCE;
+    }
+
+    @Override
+    public ComType visitSwitch(PseudoCodeParser.SwitchContext ctx) {
+        int i = 0;
+
+        for(TerminalNode caseNode : ctx.CASE()) {
+            // 'caseNode' rappresenta il token "case"
+            ExpValue<?> caseValue = getCaseValue(ctx, i);
+
+            ExpType expType = (ExpType) visit(ctx.exp());
+            ExpType caseval = TypeUtils.fromValue(caseValue);
+
+            if(expType.isCompatible(caseval)){
+                PseudoCodeTS typeSystemSwitch = new PseudoCodeTS(typeMap);
+                typeSystemSwitch.visitCom(ctx.com(i));
+            } else{
+                throw new TypeMismatchException("Type mismatch in switch case.\n@" + ctx.start.getLine() + "-" + ctx.com().indexOf(ctx.com(i)));
+            }
+
+            i++;
+        }
+        if(ctx.DEFAULT() != null) {
+            int defaultIndex = ctx.com().size()-1;
+            if (defaultIndex >= 0 && ctx.com(defaultIndex) != null) {
+                PseudoCodeTS typeSystemElse = new PseudoCodeTS(typeMap);
+                typeSystemElse.visitCom(ctx.com(defaultIndex));
+            }
+        }
+
         return ComType.INSTANCE;
     }
 
