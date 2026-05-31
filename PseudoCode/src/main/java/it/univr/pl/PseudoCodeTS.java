@@ -4,6 +4,7 @@ import it.univr.pl.exception.TypeMismatchException;
 import it.univr.pl.exception.VarDeclarationException;
 import it.univr.pl.type.*;
 import it.univr.pl.value.*;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -50,27 +51,23 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
         return typeA == typeB || typeA.isCompatible(typeB) || typeB.isCompatible(typeA);
     }
 
-    //  Attraverso questo meotodo otteniamo il valore di case (tra i tipi possibili) corrispettivo all'indice index.
     private ExpValue<?> getCaseValue(PseudoCodeParser.SwitchContext ctx, int index) {
-        TerminalNode currentCaseNode = ctx.CASE(index);
-
-        if (ctx.INT(index) != null) {
-            return new IntValue(Integer.parseInt(ctx.INT(index).getText()));
+        Token t = ctx.op.get(index);
+        String text = t.getText();
+        switch (t.getType()) {
+            case PseudoCodeParser.INT:
+                return new IntValue(Integer.parseInt(text));
+            case PseudoCodeParser.STRING:
+                return new StringValue(StringEscapeUtils.unescapeJava(text.substring(1, text.length() - 1)));
+            case PseudoCodeParser.BOOL:
+                return new BoolValue(Boolean.parseBoolean(text));
+            case PseudoCodeParser.DEC:
+                return new DecValue(Double.parseDouble(text));
+            case PseudoCodeParser.CHAR:
+                return new CharValue(text.charAt(1));
+            default:
+                return null;
         }
-        if (ctx.STRING(index) != null) {
-            return new StringValue(StringEscapeUtils.unescapeJava(ctx.STRING(index).getText().substring(1, ctx.STRING(index).getText().length() - 1)));
-        }
-        if (ctx.BOOL(index) != null) {
-            return new BoolValue(Boolean.parseBoolean(ctx.BOOL(index).getText()));
-        }
-        if (ctx.DEC(index) != null) {
-            return new DecValue(Double.parseDouble(ctx.DEC(index).getText()));
-        }
-        if (ctx.CHAR(index) != null) {
-            return new CharValue(ctx.CHAR(index).getText().charAt(1));
-        }
-
-        return null;
     }
 
     @Override

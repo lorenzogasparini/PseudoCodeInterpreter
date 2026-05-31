@@ -35,16 +35,16 @@ public class Main {
 
     private static final String IN =
     """
-    int y <- 1;
+    string y <- "asd";
     int x <- 0;
     switch(y){
+        case "asdasd":{
+            x <- 81
+        }
         case 1:{
             x <- 81
         }
         case "asd":{
-            x <- 81
-        }
-        case 12:{
             x <- 82
         }
         default:{
@@ -52,8 +52,6 @@ public class Main {
         }
     }
     """;
-
-
 
     public static void main(String[] args) {
         String prog = IN;

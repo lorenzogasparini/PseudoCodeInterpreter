@@ -217,4 +217,33 @@ public class PseudoCodeUTests {
 
         assertEquals(82, mem.getValue("x").toJavaValue());
     }
+
+    @Test
+    public void testInterpreteCostruttoSwitchTipoErroneo() {
+        String code = """
+                int y <- 1;
+                int x <- 0;
+                switch(y){
+                    case 1:{
+                        x <- 81
+                    }
+                    case "asd":{
+                        x <- 81
+                    }
+                    case 12:{
+                        x <- 82
+                    }
+                    default:{
+                        x <- 83
+                    }
+                }
+                """;
+        // Ci aspettiamo che l'Interprete si accorga della divisione per zero
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            runCode(code);
+        });
+
+        assertTrue(exception.getMessage().contains("Type mismatch in switch case"));
+    }
+
 }
