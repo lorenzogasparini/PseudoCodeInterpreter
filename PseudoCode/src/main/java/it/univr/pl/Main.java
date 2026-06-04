@@ -37,18 +37,22 @@ public class Main {
     """
     string y <- "asd";
     int x <- 0;
+    int z <- 0;
     switch(y){
-        case "asdasd":{
-            x <- 81
+        case "asd":{
+            x <- 81;
+            y <- "asdasd"
         }
-        case 1:{
-            x <- 81
+        case "asdasd":{
+            x <- 82;
+            y <- "asdasd"
         }
         case "asd":{
-            x <- 82
+            x <- 81;
+            y <- "asdasd"
         }
         default:{
-            x <- 83
+            z <- 3
         }
     }
     """;

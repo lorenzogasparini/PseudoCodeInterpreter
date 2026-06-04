@@ -238,12 +238,44 @@ public class PseudoCodeUTests {
                     }
                 }
                 """;
-        // Ci aspettiamo che l'Interprete si accorga della divisione per zero
+        // Ci aspettiamo che l'Interprete si accorga del tipo erroneo inserito come case
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             runCode(code);
         });
 
         assertTrue(exception.getMessage().contains("Type mismatch in switch case"));
+    }
+
+    @Test
+    public void testInterpreteCostruttoSwitchConCaseDuplicato() {
+        String code = """
+                string y <- "asd";
+                int x <- 0;
+                int z <- 0;
+                switch(y){
+                    case "asd":{
+                        x <- 81;
+                        y <- "asdasd"
+                    }
+                    case "asdasd":{
+                        x <- 82;
+                        y <- "asdasd"
+                    }
+                    case "asd":{
+                        x <- 81;
+                        y <- "asdasd"
+                    }
+                    default:{
+                        z <- 3
+                    }
+                }
+                """;
+        // Ci aspettiamo che l'Interprete si accorga del valore di case duplicato
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            runCode(code);
+        });
+
+        assertTrue(exception.getMessage().contains("Case duplicate in switch case"));
     }
 
 }

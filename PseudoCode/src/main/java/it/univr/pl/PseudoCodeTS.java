@@ -1,5 +1,6 @@
 package it.univr.pl;
 
+import it.univr.pl.exception.SwitchCaseException;
 import it.univr.pl.exception.TypeMismatchException;
 import it.univr.pl.exception.VarDeclarationException;
 import it.univr.pl.type.*;
@@ -8,7 +9,9 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.text.StringEscapeUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
@@ -153,21 +156,28 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
     @Override
     public ComType visitSwitch(PseudoCodeParser.SwitchContext ctx) {
         int i = 0;
+        List<ExpValue<?>> caseNodeList = new ArrayList<>();
 
         for(TerminalNode caseNode : ctx.CASE()) {
-            // 'caseNode' rappresenta il token "case"
-            ExpValue<?> caseValue = getCaseValue(ctx, i);
+            if(!caseNodeList.contains(getCaseValue(ctx, i))){
+                // 'caseNode' rappresenta il token "case"
+                ExpValue<?> caseValue = getCaseValue(ctx, i);
+                caseNodeList.add(caseValue);
 
-            ExpType expType = (ExpType) visit(ctx.exp());
-            ExpType caseval = TypeUtils.fromValue(caseValue);
+                ExpType expType = (ExpType) visit(ctx.exp());
+                ExpType caseval = TypeUtils.fromValue(caseValue);
 
-            if(expType.isCompatible(caseval)){
-                PseudoCodeTS typeSystemSwitch = new PseudoCodeTS(typeMap);
-                typeSystemSwitch.visitCom(ctx.com(i));
-            } else{
-                throw new TypeMismatchException("Type mismatch in switch case.\n@" + ctx.start.getLine() + "-" + ctx.com().indexOf(ctx.com(i)));
+                if(expType.isCompatible(caseval)){
+                    PseudoCodeTS typeSystemSwitch = new PseudoCodeTS(typeMap);
+                    typeSystemSwitch.visitCom(ctx.com(i));
+                } else{
+                    //  TODO: capire come predisporre al meglio il numero della riga di errore nella stampa
+                    throw new TypeMismatchException("Type mismatch in switch case.\n@" + ctx.start.getLine() + "-" + ctx.com().indexOf(ctx.com(i)));
+                }
             }
-
+            else{
+                throw new SwitchCaseException("Case duplicate in switch case.\n@" + ctx.start.getLine());
+            }
             i++;
         }
         if(ctx.DEFAULT() != null) {
