@@ -14,6 +14,17 @@
           <option name="generateListener" value="false" />
           <option name="generateVisitor" value="true" />
         </PerGrammarGenerationSettings>
+        <PerGrammarGenerationSettings>
+          <option name="fileName" value="$PROJECT_DIR$/PseudoCode/src/main/antlr4/it/univr/pl/PseudoCode.g4" />
+          <option name="autoGen" value="true" />
+          <option name="outputDir" value="target/generated-sources/antlr4" />
+          <option name="libDir" value="" />
+          <option name="encoding" value="" />
+          <option name="pkg" value="it.univr.pl" />
+          <option name="language" value="" />
+          <option name="generateListener" value="false" />
+          <option name="generateVisitor" value="true" />
+        </PerGrammarGenerationSettings>
       </list>
     </option>
   </component>

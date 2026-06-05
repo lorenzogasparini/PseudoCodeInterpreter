@@ -1,5 +1,6 @@
 import it.univr.pl.*;
 import it.univr.pl.exception.TypeMismatchException;
+import it.univr.pl.exception.VarDeclarationException;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -386,6 +387,60 @@ public class PseudoCodeUTests {
             """;
 
         assertThrows(RuntimeException.class, () -> {
+            runCode(code);
+        });
+    }
+
+    @Test
+    public void testInterpolazioneSemplice() {
+        // Il caso d'uso descritto nei requisiti del progetto
+        String code = """
+                int x <- 3;
+                int y <- 2;
+                string s <- "Risultato: ${x + y}"
+                """;
+
+        Mem mem = runCode(code);
+
+        assertEquals("Risultato: 5", mem.getValue("s").toJavaValue());
+    }
+
+
+    @Test
+    public void testInterpolazioneConEspressioniComplesse() {
+        // Test con operatori ternari e logici dentro la stringa
+        String code = """
+                int a <- 10;
+                string s <- "Valore: ${ (a > 5) ? 100 : 0 }"
+                """;
+
+        Mem mem = runCode(code);
+
+        assertEquals("Valore: 100", mem.getValue("s").toJavaValue());
+    }
+
+    @Test
+    public void testTypeSystemBloccaErroreInInterpolazione() {
+        // Test per verificare che il TypeSystem controlli anche il codice DENTRO la stringa
+        String code = """
+                string s <- "Risultato: ${variabileInesistente + 5}"
+                """;
+
+        // Ci aspettiamo che il Type System intercetti la variabile non dichiarata PRIMA dell'esecuzione
+        assertThrows(VarDeclarationException.class, () -> {
+            runCode(code);
+        });
+    }
+
+    @Test
+    public void testTypeSystemBloccaErroreDiTipoInInterpolazione() {
+        String code = """
+                string testo <- "ciao";
+                string s <- "Risultato: ${testo - 5}"
+                """;
+
+        // Non si può sottrarre un numero a una stringa. Il Type System deve bloccarlo.
+        assertThrows(TypeMismatchException.class, () -> {
             runCode(code);
         });
     }

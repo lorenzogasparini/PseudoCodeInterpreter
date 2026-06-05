@@ -5,6 +5,9 @@ import it.univr.pl.exception.TypeMismatchException;
 import it.univr.pl.exception.VarDeclarationException;
 import it.univr.pl.type.*;
 import it.univr.pl.value.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.text.StringEscapeUtils;
@@ -383,7 +386,28 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
     public SimpleType visitBoolean(PseudoCodeParser.BooleanContext ctx) { return SimpleType.BOOL; }
 
     @Override
-    public SimpleType visitString(PseudoCodeParser.StringContext ctx) { return SimpleType.STRING; }
+    public SimpleType visitString(PseudoCodeParser.StringContext ctx) {
+        String raw = ctx.STRING().getText();
+        String str = raw.substring(1, raw.length() - 1);
+        str = org.apache.commons.text.StringEscapeUtils.unescapeJava(str);
+
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\$\\{([^}]+)}");
+        java.util.regex.Matcher matcher = pattern.matcher(str);
+
+        while (matcher.find()) {
+            String exprText = matcher.group(1);
+
+            // parser per analizzare l'espressione
+            CharStream cs = CharStreams.fromString(exprText);
+            PseudoCodeLexer lexer = new PseudoCodeLexer(cs);
+            PseudoCodeParser parser = new PseudoCodeParser(new CommonTokenStream(lexer));
+
+            // VALUTAZIONE STATICA: Il Type System analizza l'espressione tra ${}.
+            visit(parser.exp());
+        }
+
+        return SimpleType.STRING;
+    }
 
     @Override
     public SimpleType visitChar(PseudoCodeParser.CharContext ctx) { return SimpleType.CHAR; }

@@ -6,6 +6,8 @@ import it.univr.pl.type.ExpType;
 import it.univr.pl.type.SimpleType;
 import it.univr.pl.type.TypeUtils;
 import it.univr.pl.value.*;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.text.StringEscapeUtils;
@@ -454,10 +456,34 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
     @Override
     public StringValue visitString(PseudoCodeParser.StringContext ctx) {
-        // Rimuove i doppi apici e converte le sequenze di escape (\n, \t) in veri caratteri
-        String str = ctx.STRING().getText().substring(1, ctx.STRING().getText().length() - 1);
-        return new StringValue(StringEscapeUtils.unescapeJava(str));
+        String raw = ctx.STRING().getText();
+        String str = raw.substring(1, raw.length() - 1);
+        str = StringEscapeUtils.unescapeJava(str);
+
+        // Regex per ${...}
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\$\\{([^}]+)}");
+        java.util.regex.Matcher matcher = pattern.matcher(str);
+
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find()) {
+            String exprText = matcher.group(1);
+
+            // PARSING DELL'ESP
+            PseudoCodeLexer lexer = new PseudoCodeLexer(CharStreams.fromString(exprText));
+            PseudoCodeParser parser = new PseudoCodeParser(new CommonTokenStream(lexer));
+
+            ExpValue<?> value = visitExp(parser.exp());
+
+            matcher.appendReplacement(result, value.toJavaValue().toString());
+        }
+
+        matcher.appendTail(result);
+
+        return new StringValue(result.toString());
     }
+
+
 
     @Override
     public CharValue visitChar(PseudoCodeParser.CharContext ctx) {

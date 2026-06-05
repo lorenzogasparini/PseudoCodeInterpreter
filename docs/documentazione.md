@@ -63,3 +63,21 @@ $$
 \textbf{Seq}\ \frac{\langle \Gamma , \texttt{com}_1 \rangle \to \langle \Gamma', \texttt{com}_1' \rangle}{\langle \Gamma , \texttt{com}_1 ; \texttt{com}_2 \rangle \to \langle \Gamma', \texttt{com}_1' ; \texttt{com}_2 \rangle} \qquad \qquad \textbf{SeqE}\ \frac{\text{--}}{\langle \Gamma, \epsilon ; \texttt{com}_2 \rangle \to \langle \Gamma , \texttt{com}_2 \rangle}
 $$
 La valutazione si interrompe quando \texttt{com} restituisce una configurazione vuota $\langle \Gamma,\epsilon \rangle$, ciò significa che il programma è ben tipizzato.
+\subsubsection{Funzionalità Avanzate: Interpolazione, Non Determinismo e Input}
+Il linguaggio estende le sue funzionalità base con costrutti avanzati la cui semantica statica (Type System) richiede regole di inferenza dedicate.
+
+Per lo \textbf{zucchero sintattico dell'interpolazione delle stringhe}, il Type System deve analizzare l'espressione \texttt{exp} contenuta all'interno del blocco \texttt{\$\{...\}} per garantirne la corretta tipizzazione prima dell'esecuzione:
+$$
+\textbf{StringInterp}\ \frac{\langle \Gamma, \texttt{exp} \rangle \to \tau}{\langle \Gamma, \texttt{"... \$\{exp\} ..."} \rangle \to \texttt{string}}
+$$
+
+Il costrutto di \textbf{scelta non deterministica} (operatore \texttt{@}) permette di eseguire un comando estratto da una lista con probabilità uniforme. Staticamente, ciò impone che ogni ramo della scelta sia un comando ben tipizzato:
+$$
+\textbf{NonDet}\ \frac{\langle \Gamma, \texttt{com}_1 \rangle \to \langle \Gamma, \epsilon \rangle \quad \dots \quad \langle \Gamma, \texttt{com}_n \rangle \to \langle \Gamma, \epsilon \rangle}{\langle \Gamma, \texttt{com}_1 @ \dots @ \texttt{com}_n \rangle \to \langle \Gamma, \epsilon \rangle}
+$$
+A livello di semantica operativa (valutazione a runtime sulla memoria $M$), il sistema di transizione sceglie un indice $i \in \{1, \dots, n\}$ in modo pseudo-casuale, proseguendo l'esecuzione solo con il ramo $\texttt{com}_i$ con probabilità $p = \frac{1}{n}$.
+
+Infine, per il costrutto di \textbf{input da tastiera}, la dichiarazione esplicita del tipo desiderato garantisce che l'espressione assuma staticamente il tipo indicato, delegando l'acquisizione del valore a tempo di esecuzione:
+$$
+\textbf{Read}\ \frac{\text{--}}{\langle \Gamma, \texttt{read } \tau \rangle \to \tau}
+$$
