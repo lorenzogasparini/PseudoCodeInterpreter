@@ -278,4 +278,48 @@ public class PseudoCodeUTests {
         assertTrue(exception.getMessage().contains("Case duplicate in switch case"));
     }
 
+    @Test
+    public void testInterpreteDichiarazioneArray() {
+        String code = """
+                int y[] <- {81,82};
+                int x <- 0;
+                int z <- 0
+                """;
+        Mem mem = runCode(code);
+
+        assertEquals(81, mem.getValue("y_0").toJavaValue());
+        assertEquals(82, mem.getValue("y_1").toJavaValue());
+    }
+
+    @Test
+    public void testInterpreteAssegnamentoArray() {
+        String code = """
+                int y[] <- {81,82};
+                int x <- 0;
+                int z <- 0;
+                if(x == 0) then {
+                    y[1] <- 86
+                }
+                """;
+        Mem mem = runCode(code);
+
+        assertEquals(81, mem.getValue("y_0").toJavaValue());
+        assertEquals(86, mem.getValue("y_1").toJavaValue());
+    }
+
+    @Test
+    public void testInterpreteUtilizzoArrayVal() {
+        String code = """
+                int y[] <- {81,20};
+                int x <- 0;
+                int z <- 0;
+                if(z == 0) then {
+                    x <- y[1]*3
+                }
+                """;
+        Mem mem = runCode(code);
+
+        assertEquals(60, mem.getValue("x").toJavaValue());
+    }
+
 }

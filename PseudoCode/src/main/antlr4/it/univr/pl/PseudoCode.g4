@@ -3,6 +3,8 @@ grammar PseudoCode;
 main : com EOF ;
 
 com : TYPE ID (ASSIGN exp)?                                          # decl
+    | TYPE ID '[' ']' (ASSIGN LBRACE (exp (',' exp)*) RBRACE)?       # declArray
+    | ID (('[' ']' ASSIGN LBRACE (exp (',' exp)*) RBRACE) | ('[' (INT | ID) ']' ASSIGN exp))          # assignArray
     | ID ASSIGN exp                                                  # assign
     | ID op=(PLUS_ASSIGN | MINUS_ASSIGN) exp                         # assignOp  // Avanzato 1: zucchero sintattico
     | ID op=(INC | DEC_OP)                                           # incDec    // Avanzato 1: zucchero sintattico
@@ -29,6 +31,7 @@ exp : num                                 # numeric
     | LPAR exp RPAR                       # parExp
     | exp QMARK exp COLON exp             # ternary     // Avanzato 1: operatore ternario (condizione ? expvero : expfalso)
     | READ TYPE                           # readExp     // Avanzato 2: input da tastiera
+    | ID '[' (INT) ']'                    # arrayVal
     ;
 
 num : INT # intNum

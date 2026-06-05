@@ -33,28 +33,24 @@ public class Main {
             int rand1 <- input @ int rand2 <- input
             """;
 
-    private static final String IN =
+    private static final String NONFUNZIONANTE =
     """
-    string y <- "asd";
+    int y[] <- {81,20};
     int x <- 0;
     int z <- 0;
-    switch(y){
-        case "asd":{
-            x <- 81;
-            y <- "asdasd"
-        }
-        case "asdasd":{
-            x <- 82;
-            y <- "asdasd"
-        }
-        case "asd":{
-            x <- 81;
-            y <- "asdasd"
-        }
-        default:{
-            z <- 3
-        }
+    if(z == 0) then {
+        x <- (x-3)*2
     }
+    """;
+
+    private static final String IN =
+    """
+    int y[] <- {81,20};
+    int x <- 0;
+    int z <- 0;
+    if(z == 0) then {
+        x <- y[1]*3
+    }                
     """;
 
     public static void main(String[] args) {

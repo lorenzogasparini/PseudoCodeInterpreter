@@ -98,6 +98,45 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
     }
 
     @Override
+    public ComType visitDeclArray(PseudoCodeParser.DeclArrayContext ctx) {
+        ExpType varType = TypeUtils.fromString(ctx.TYPE().getText());
+        String id = ctx.ID().getText();
+
+        if (typeMap.containsKey(id)) {
+            throw new VarDeclarationException("Variable array " + id + " already declared.\n@" + ctx.start.getLine() + ":" + ctx.start.getCharPositionInLine());
+        }
+        typeMap.put(id, varType);
+        if (ctx.ASSIGN() != null) {
+            for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
+                ExpType expType = (ExpType) visit(ex);
+                if (!varType.isCompatible(expType)) {
+                    throw new TypeMismatchException("Variable array " + id + " cannot be assigned with " + expType.getName() + ".\n@" + ctx.start.getLine() + ":" + ctx.start.getCharPositionInLine());
+                }
+            }
+        }
+
+        return ComType.INSTANCE;
+    }
+
+    @Override
+    public ComType visitAssignArray(PseudoCodeParser.AssignArrayContext ctx) {
+        String id = ctx.ID(0).getText();
+        if (!typeMap.containsKey(id)) {
+            throw new VarDeclarationException("Variable array " + id + " assigned but never declared.\n@" + ctx.start.getLine() + ":" + ctx.start.getCharPositionInLine());
+        }
+
+        for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
+            ExpType varType = typeMap.get(id);
+            ExpType expType = (ExpType) visit(ex);
+            if (!varType.isCompatible(expType)) {
+                throw new TypeMismatchException("Variable array " + id + " cannot be assigned with " + expType.getName() + ".\n@" + ctx.start.getLine() + ":" + ctx.start.getCharPositionInLine());
+            }
+        }
+
+        return ComType.INSTANCE;
+    }
+
+    @Override
     public ComType visitAssign(PseudoCodeParser.AssignContext ctx) {
         String id = ctx.ID().getText();
         if (!typeMap.containsKey(id)) {
@@ -221,6 +260,15 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
 
     @Override
     public ExpType visitId(PseudoCodeParser.IdContext ctx) {
+        String id = ctx.ID().getText();
+        if (!typeMap.containsKey(id)) {
+            throw new VarDeclarationException("Variable " + id + " not declared.\n@" + ctx.start.getLine());
+        }
+        return typeMap.get(id);
+    }
+
+    @Override
+    public ExpType visitArrayVal(PseudoCodeParser.ArrayValContext ctx) {
         String id = ctx.ID().getText();
         if (!typeMap.containsKey(id)) {
             throw new VarDeclarationException("Variable " + id + " not declared.\n@" + ctx.start.getLine());

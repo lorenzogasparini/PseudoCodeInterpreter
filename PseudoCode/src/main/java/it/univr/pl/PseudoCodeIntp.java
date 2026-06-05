@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.text.StringEscapeUtils;
 
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -70,6 +71,48 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
             ExpValue<?> val = visitExp(ctx.exp());
             mem.updateValue(id, val);
         }
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitDeclArray(PseudoCodeParser.DeclArrayContext ctx) {
+        ExpType type = TypeUtils.fromString(ctx.TYPE().getText());
+        String id = ctx.ID().getText();
+
+        //  mem.add(id, type);  -->  Alloca la variabile in memoria
+
+        if (ctx.ASSIGN() != null) {
+            for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
+                ExpValue<?> val = visitExp(ex);
+                mem.add(id + "_" + ctx.exp().indexOf(ex), val);
+            }
+        }
+
+        return ComValue.INSTANCE;
+    }
+
+    @Override
+    public ComValue visitAssignArray(PseudoCodeParser.AssignArrayContext ctx) {
+        String id = ctx.ID(0).getText();
+
+        //  mem.add(id, type); Alloca la variabile in memoria
+
+        if (ctx.ASSIGN() != null) {
+            for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
+                ExpValue<?> val = visitExp(ex);
+                if(ctx.ID(1) != null) {
+                    mem.updateValue(id + "_" + ctx.ID(1).getText(), val);
+                }
+                else if(ctx.INT() != null) {
+                    String st = "" + ctx.INT().getText();
+                    mem.updateValue(id + "_" + ctx.INT().getText(), val);
+                }
+                else if(ctx.ID(1) == null && ctx.INT() == null){
+                    mem.updateValue(id + "_" + ctx.exp().indexOf(ex), val);
+                }
+            }
+        }
+
         return ComValue.INSTANCE;
     }
 
@@ -376,6 +419,11 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
             default:
                 return null;
         }
+    }
+
+    @Override
+    public ExpValue<?> visitArrayVal(PseudoCodeParser.ArrayValContext ctx) {
+        return mem.getValue(ctx.ID() + "_" + ctx.INT());
     }
 
     @Override
