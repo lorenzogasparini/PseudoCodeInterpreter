@@ -322,4 +322,71 @@ public class PseudoCodeUTests {
         assertEquals(60, mem.getValue("x").toJavaValue());
     }
 
+    @Test
+    public void testAssignArrayIndiceVariabile() {
+        String code = """
+            int a[] <- {10,20,30};
+            int i <- 1;
+            a[i] <- 99
+            """;
+
+        Mem mem = runCode(code);
+
+        assertEquals(10, mem.getValue("a_0").toJavaValue());
+        assertEquals(99, mem.getValue("a_1").toJavaValue());
+        assertEquals(30, mem.getValue("a_2").toJavaValue());
+    }
+
+    @Test
+    public void testAssignArrayCompleto() {
+        String code = """
+            int a[] <- {1,2,3};
+            a[] <- {7,8,9}
+            """;
+
+        Mem mem = runCode(code);
+
+        assertEquals(7, mem.getValue("a_0").toJavaValue());
+        assertEquals(8, mem.getValue("a_1").toJavaValue());
+        assertEquals(9, mem.getValue("a_2").toJavaValue());
+    }
+
+    @Test
+    public void testArrayDopoAssegnazione() {
+        String code = """
+            int a[] <- {2,4,6};
+            int i <- 0;
+            a[i] <- 10;
+            int x <- a[0] + a[1]
+            """;
+
+        Mem mem = runCode(code);
+
+        assertEquals(14, mem.getValue("x").toJavaValue()); // 10 + 4
+    }
+
+    @Test
+    public void testIndiceFuoriBound() {
+        String code = """
+            int a[] <- {1,2};
+            a[5] <- 10
+            """;
+
+        assertThrows(RuntimeException.class, () -> {
+            runCode(code);
+        });
+    }
+
+    @Test
+    public void testIndiceFuoriBoundConId() {
+        String code = """
+            int a[] <- {1,2};
+            i <- 5;
+            a[i] <- 10
+            """;
+
+        assertThrows(RuntimeException.class, () -> {
+            runCode(code);
+        });
+    }
 }

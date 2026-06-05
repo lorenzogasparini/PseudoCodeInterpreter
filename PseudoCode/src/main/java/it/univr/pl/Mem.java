@@ -26,6 +26,9 @@ public class Mem {
     }
 
     public ExpValue<?> getValue(String id) {
+        if (!values.containsKey(id)) {
+            throw new RuntimeException("Accesso a indice non valido: " + id);
+        }
         return values.get(id);
     }
 
@@ -34,6 +37,9 @@ public class Mem {
     }
 
     public void updateValue(String id, ExpValue<?> value) {
+        if (!values.containsKey(id)) {
+            throw new RuntimeException("Accesso a indice non valido: " + id);
+        }
         values.put(id, value);
     }
 

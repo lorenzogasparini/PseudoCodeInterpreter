@@ -100,14 +100,15 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
         if (ctx.ASSIGN() != null) {
             for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
                 ExpValue<?> val = visitExp(ex);
-                if(ctx.ID(1) != null) {
-                    mem.updateValue(id + "_" + ctx.ID(1).getText(), val);
+                if(ctx.ID(1) != null) { // indice variabile (es. a[i] <- 5)
+                    String indexVar = ctx.ID(1).getText();
+                    int index = (int) mem.getValue(indexVar).toJavaValue();
+                    mem.updateValue(id + "_" + index, val);
                 }
-                else if(ctx.INT() != null) {
-                    String st = "" + ctx.INT().getText();
+                else if(ctx.INT() != null) {  // indice costante (es. a[2] <- 5)
                     mem.updateValue(id + "_" + ctx.INT().getText(), val);
                 }
-                else if(ctx.ID(1) == null && ctx.INT() == null){
+                else if(ctx.ID(1) == null && ctx.INT() == null){ // assegnazione array intero (es. a[] <- {1, 2, 3}
                     mem.updateValue(id + "_" + ctx.exp().indexOf(ex), val);
                 }
             }
@@ -423,7 +424,10 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
     @Override
     public ExpValue<?> visitArrayVal(PseudoCodeParser.ArrayValContext ctx) {
-        return mem.getValue(ctx.ID() + "_" + ctx.INT());
+        String id = ctx.ID().getText();
+        String index = ctx.INT().getText();
+
+        return mem.getValue(id + "_" + index);
     }
 
     @Override
