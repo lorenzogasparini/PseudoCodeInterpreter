@@ -361,31 +361,149 @@ abc
 
 ### 3.4 Assegnamenti
 
+```
+x = 42;       // assegnamento a variabile di tipo int
+x += 5;       // equivalente a x = x + 5
+x -= 2;       // equivalente a x = x - 2
+x *= 3;       // equivalente a x = x * 3
+x /= 4;       // equivalente a x = x / 4
+x++;          // post-incremento, incremento unitario dopo la valutazione
+x--;          // post-decremento, decremento unitario dopo la valutazione
+x <- {1,2,3}  // assegnamento ad array di variabili di tipo int già dichiarato
+x[0] <- 1     // assegnamento ad elemento di un array di variabili di tipo int già dichiarato
+```
+
+Come statement isolati, post incremento/decremento hanno lo stesso effetto di un assegnamento. La distinzione è rilevante solo quando usati come sotto-espressioni.
+
 ### 3.5 Espressioni
+Le espressioni supportano la **precedenza standard** degli operatori (dal più basso al più alto):
+
+| Livello | Operatori                                                                       |
+|---------|---------------------------------------------------------------------------------|
+| 1       | `_ ? _ : _` (ternario)                                                          |
+| 2       | `OR`, `AND` (or, and logici)                                                    |
+| 3       | `==`, `!=`, `<`, `>`, `<=`, `>=` (comparatori)                                  |
+| 4       | `+`, `-` (somma, sottrazione)                                                   |
+| 5       | `*`, `/`, `mod`, `pow` (moltiplicazione, divisione, modulo, elevamento a potenza) |
+| 6       | `!=` (negazione logica dell'uguaglianza)                |
+| 7       | Accesso array `arr[i]`                                                          |
+
+**Operatore ternario:**
+```
+String msg = (porzioni > 1) ? "porzioni" : "porzione";
+```
+La variabile `msg` viene assegnata con la stringa *"porzioni"* se la variabile `porzioni` è maggiore di 1. VIene assegnato con la stringa *"porzione"* altrimenti.
 
 ### 3.6 Costrutti di controllo
+**Condizionale o di Selezione:**
+```
+if (a > 1) {
+    disp "a maggiore di 1";
+} else {
+    disp "a minore o uguale a 1";
+}
+```
+**Condizionale o di selezione a selezione multipla:**
+```
+switch(y){
+    case "primo":{
+        disp "Prima opzione"
+    }
+    case "secondo":{
+        disp "Seconda opzione"
+    }
+    default:{
+        disp "Opzione di default"
+    }
+}
+```
+
+**Ciclo while:**
+```
+Int i = 0;
+repeat while (counter < 5) {
+    counter++
+}
+```
+
+Il ciclo `repeat while (counter < 5)` itera `counter` da `0` a `4` inclusi, i valori su cui iterare possono essere solo numeri interi non negativi.
 
 ### 3.7 Stampa e interpolazione nelle stringhe
+```
+string testo <- "ciao";
+string s <- "Risultato: ${testo - 5}"
+```
+Le stringhe interpolate iniziano normalmente come una variabile di tipo stringa con `"` e terminano con `"`. Le espressioni interpolate in stringa sono racchiuse in `${...}`.
 
 ### 3.8 Array
+```
+string settimana[] <- {"lunedi", "martedi", "mercoledi", "giovedi", "venerdi", "sabato", "domenica"};
+int lunedi = 1;
+disp "il primo giorno della settimana è ${settimana[lunedi]}";
+
+int x[] <- {100, 101, 102}    // dichiarazione di array
+x <- {1,2,3}                  // assegnamento ad array di variabili di tipo int già dichiarato
+x[0] <- 1                     // assegnamento ad elemento di un array di variabili di tipo int già dichiarato
+```
 
 ### 3.9 Uscita dal programma
+$$
+\cdots \text{ completare eventualmente }\cdots
+$$
 
 ### 3.10 Commenti
+```
+int a <- 1        // dichiarazione di variabile
+if(a == 1) then { // ramo then del costrutto di controllo
+    disp "a è uguale a 1"
+} else {          // ramo else del costrutto di controllo
+    disp "a è diverso da 1"
+}
+```
 
 ### 3.11 Regole lessicali principali
+- Gli identificatori iniziano con una lettera o `_`, seguiti da lettere, cifre, o `_`.
+- Le keyword sono case-sensitive e riservate (ad esempio, `if`, `while`, `for`, `true`, `false`, i nomi dei tipi).
+- I blocchi sono delimitati da `{` e `}`.
+- Ogni sequenza di statement composta da almeno due statement termina con `;` (tranne l'ultimo statement, questo espediente viene utilizzato per predisporre un termine di _lookahead_ per la verifica della terminazione del blocco di codice.
+- Gli spazi bianchi e le tabulazioni sono ignorati.
+- I commenti sono ignorati nell'esecuzione.
 
 ## 4. Semantica
 
 ### 4.1 Tipizzazione
+PseudoCode adotta **tipizzazione statica**: ogni variabile deve essere dichiarata con un tipo esplicito, e il tipo non può cambiare durante l'esecuzione. Le verifiche di tipo avvengono prima di eseguire un programma tramite un **type system** (implementato attraverso la classe _PseudoCodeTS_, il quale riporta errori segnalati con messaggi descrittivi. Gli errori gestiti staticamente includono:
+
+| Errore                        | Messaggio                                                  |
+|-------------------------------|------------------------------------------------------------|
+| Variabile non dichiarata      | *"Errore di tipo: variabile 'x' usata ma non dichiarata"*  |
+| Tipo incompatibile            | *"Errore di tipo: operazione non valida tra Int e Bool"*   |
+| Assegnamento di tipo errato   | *"Errore di tipo: atteso Gram, trovato String"*            |
 
 ### 4.2 Visibilità e scoping
+PseudoCode adotta lo **scoping lessicale** con **shadowing**. Ogni blocco `{ ... }` introduce un nuovo ambiente. Una variabile dichiarata in un blocco interno può avere lo stesso nome di una variabile esterna (la variabile interna la nasconde all'interno del blocco). All'uscita dal blocco, la variabile esterna ritorna visibile.
+
+Gli identificatori (fortemente tipati) a locazione di memoria dichiarati in qualsiasi punto del codice risiedono nella memoria globale (rappresentata dalla struttura dati predisposta nella classe _Mem_) del programma e sono visibili da qualsiasi punto del programma.
 
 ### 4.3 Valutazione delle espressioni
+Le espressioni sono valutate in modo standard: tutti gli operandi vengono valutati prima dell'applicazione dell'operatore. Gli operatori logici `AND` e `OR` **non** adottano la semantica short-circuit.
 
 ### 4.4 Gerarchia dei tipi
+$$
+\cdots \text{ da terminare }\cdots
+$$
 
 ### 4.5 Gestione degli errori a runtime
+Gli errori a tempo d'esecuzione vengono intercettati dall'`interprete` e dal `type system` e riportati con messaggi esplicativi (implementati a livello di macchina astratta di livello inferiore nella gerarchia delle macchine astratte, attraverso il concetto di **eccezione**), **terminando** il programma (??? OPPURE **senza terminare** bruscamente il programma ???). Gli errori gestiti includono:
+
+| Errore                                                                                                  | Messaggio                                                                                                                                                                                                                                                                                                                                 |
+|---------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Divisione per zero                                                                                      | *"Typing error(s) found. Divisione per zero a tempo di esecuzione!"*                                                                                                                                                                                                                                                                      |
+| Indice array fuori limite                                                                               | *"Typing error(s) found. Accesso a indice non valido: a_5"*                                                                                                                                                                                                                                                                               |
+| Utilizzo di valori case per switch di tipo non conforme all'espressione di riferimento per il costrutto | *"Typing error(s) found. Type mismatch in switch case. @x-y"*, dove $x$ è l'indice di riga del costrutto switch case e $y$ il numero di case in ordine crescente di posizione                                                                                                                                                             |
+| Case duplicati nello switch                                                                             | *"Typing error(s) found. Case duplicate in switch case. @x"*, dove $x$ rappresenta l'indice di riga del costrutto switch case di riferimento per l'errore                                                                                                                                                                                 |
+| Variabile non dichiarata                                                                                | *"Typing error(s) found. Variable _varName_ not declared. @x"*, dove $\textit{varName}$ rappresenta il nome della variabile a cui ci si riferisce senza precedente dichiarazione, e $x$ rappresenta l'indice di riga dove si trova il riferimento errato                                                                                  |
+| Errore di incongruenza di tipo                                                                          | *"Typing error(s) found. Variable _varName_ cannot be assigned with _erroneousTypeError_. @2:12"*, dove $\textit{varName}$ rappresenta il nome della variabile alla quale si sta cercando di riferirsi e $\textit{erroneousTypeError}$ rappresenta il tipo erroneo che si sta utilizzando per riferirsi alla variabile $\textit{varName}$ |
 
 ### 4.6 Semantica operazionale
 
