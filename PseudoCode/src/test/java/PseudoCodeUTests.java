@@ -71,12 +71,12 @@ public class PseudoCodeUTests {
                 int counter <- 0;
                 int flag <- 0;
                 repeat while (counter < 5) {
-                    counter++;
-                }
+                    counter++
+                };
                 if (counter == 5) then {
-                    flag <- 1;
+                    flag <- 1
                 } else {
-                    flag <- 2;
+                    flag <- 2
                 }
                 """;
 
