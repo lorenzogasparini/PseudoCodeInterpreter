@@ -24,4 +24,3 @@ jobs:
       # Utilizziamo 'working-directory' per spostarci dove risiede il pom.xml
       - name: Run Tests with Maven
         run: mvn clean test
-        working-directory: PseudoCodeInterpreter
