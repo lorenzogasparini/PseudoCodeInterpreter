@@ -316,13 +316,18 @@ $$
 \end{aligned}
 $$
 L'insieme dei simboli terminali è ben rappresentato da:
-$$
-\cdots \textit{ terminare }\cdots
-$$
+
+| Tipo                                                                      | Descrizione                                                                                                          | Esempio di valore                                                                            |
+|---------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| **Simboli terminali specificatori di Tipo (<_type_>)** (Keywords)         | Identificano i tipi di dato primitivi utilizzabili per le dichiarazioni di variabili o per le operazioni di lettura. | `int`, `dec`, `bool`, `string`, `char`                                                       |
+| **Simboli terminali specificatori di strutture di Controllo condizionali** | Regolano il flusso di esecuzione del programma in base a verifiche booleane o costrutti di selezione multipla.       | `if`, `then`, `else`, `switch`, `case`, `default`                                            |
+| **Simboli terminali specificatori di strutture dii terazione**            | Definiscono i cicli per la ripetizione di blocchi di comandi.                                                        | `repeat`, `while`                                                                            |
+| **Simboli terminali specificatori di operatori logici testuali**          | Utilizzati all'interno delle espressioni (<exp>) per l'algebra booleana e le operazioni aritmetiche testuali.        | `AND`, `OR`, `NOT`, `mod`                                                                    |
+| **Simboli terminali specificatori di comandi di Input/Output**            | Identificano le operazioni native per l'interazione con l'esterno (lettura e scrittura dati).                        | `read`, `disp`                                                                               |
+| **Simboli terminali specificatori di simboli operatore e di assegnmento** |                                                                                                                      | `<-`, `+=`, `-=`, `++`, `--`, `^`, `*`, `/`, `+`, `-`, `<`, `<=`, `>=`, `>`, `==`, `!=`, `?` |
+| **Simboli terminali specificatori di delimitatori e punteggiatura**       |                                                                                                                      | `[`, `]`, `{`, `}`, `(`, `)`, `,`, `:`, `;`, `@`                                             |                                      |
 
 La categoria sintattica dei **comandi** è ben rappresentata da _com_ nella grammatica ANTLR4, che rappresenta inoltre il simbolo iniziale della grammatica. La categoria sintattica delle espressioni è ben caratterizzata in termini semantici dai tipi definiti esplicitamente attraverso il concetto di `Type` (definito nell' opportuno package _type_) e implementati attaverso la interfaccia con i semplici _valori_ nella rappresentazione data dalla macchina astratta di livello inferiore nella gerarchia delle macchine astratte (nel nostro caso è la macchina ospitante l'esecuzione ovvero il linguaggio Java).
-
-
 
 ### 3.1 Struttura di un programma
 
@@ -626,12 +631,13 @@ PseudoCode/
 │           └── PseudoCodeUTests     # Unit Test del progetto
 ```
 
-### 5.2 L'interprete
+### 5.2 Interprete
+L'interprete è implementato come un **visitor** generato da ANTLR4 (`PseudoCodeVisitor`) in classe Java. La classe principale `PseudoCodeInterpreter` estende `PseudoCodeVisitor` e sovrascrive il metodo `visit*` per ogni produzione della grammatica in maniera tale da esplicitare la semantica voluta per la produzione, una volta in fase di analisi semantica e dunque nella visita dell'albero sintattico annotato e valorizzato.
 
-### 5.3 Gestione dello scope
+Il metodo `visitMain` predispone la visita del primo comando del programma e dunque segna l'inizio della computazione, in questi termini. Lo stato è mantenuto attraverso una memoria (`Mem`).
 
-### 5.4 Zucchero sintattico
+### 5.3 Gestione della memoria
+La classe `Mem` implementa una astrazione del concetto di memoria. Ogni inserimento crea una nuova istanza locale di locazione di memoria per la quale si definiscono due valori `values` e `types` (implementati attraverso le primitive del linguaggio macchina di livello inferiore nella gerarchia delle macchine astratte, ovvero il linguaggio Java, rispettivamente attraverso delle _HashMap_ per tali informazioni). Sono stati predisposti inoltre dei metodi per l'interazione con la memoria in termini di aggiunta e modifica di quanto già presente come locazione di memoria. La ricerca di una locazione di memoria riferita attraverso i ben **tipati identificatori** è possibile con accesso diretto, data le strutture dati implementate.
 
-### 5.5 Difficoltà tecniche
-
-## 6. EVENTUALI Programmi di test
+## 6. Programmi di test
+I test sono stati predisposti attraverso l'integrazione di **JUnit 5.10.0** e **Maven**, nella classe `PseudoCodeUTest`, che predispone un insieme di 24 test di natura eterogenea, che coprono la totalità di situazioni la cui verifica o meno permette di assolvere al compito della analisi di correttezza della totalità degli strumenti implementati.
