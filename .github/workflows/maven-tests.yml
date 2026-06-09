@@ -14,13 +14,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-
-      # Utilizziamo 'working-directory' per spostarci dove risiede il pom.xml
-      - name: Run Tests with Maven
-        run: mvn clean test
+      # Questo step ci mostrerà l'esatta struttura delle cartelle su GitHub
+      - name: Controlla struttura file
+        run: |
+          echo "=== Cartella corrente ==="
+          pwd
+          echo "=== Contenuto della cartella ==="
+          ls -R
