@@ -6,7 +6,7 @@
   </p>
 </div>
 
-> _PsuedoCodeInterpreter_ è un linguaggio general purpose che mira a realizzare dal punto di visto della computazione quanto generalmente inteso come pseudocodice.
+> _PsuedoCodeInterpreter_ è un linguaggio general purpose che mira a realizzare dal punto di vista della computazione quanto generalmente inteso come pseudocodice.
 
 ## Indice
 
@@ -489,9 +489,15 @@ Gli identificatori (fortemente tipati) a locazione di memoria dichiarati in qual
 Le espressioni sono valutate in modo standard: tutti gli operandi vengono valutati prima dell'applicazione dell'operatore. Gli operatori logici `AND` e `OR` **non** adottano la semantica short-circuit.
 
 ### 4.4 Gerarchia dei tipi
-$$
-\cdots \text{ da terminare }\cdots
-$$
+```
+Bool
+String
+Char
+num
+├── Int
+└── Dec
+```
+Da notare la possibilità di effettuare bilateralmente il casting tra variabili appartenenti al _macro-tipo numerico_ (inteso come tale solamente ad un primo livello sintattico), dunque attraverso la funzione `castValue` definita nella opportuna classe `TypeUtils` sarà possibile considerare, in termini semantici, una variabile di tipo `int` come una variabile di tipo `dec` e viceversa.
 
 ### 4.5 Gestione degli errori a runtime
 Gli errori a tempo d'esecuzione vengono intercettati dall'`interprete` e dal `type system` e riportati con messaggi esplicativi (implementati a livello di macchina astratta di livello inferiore nella gerarchia delle macchine astratte, attraverso il concetto di **eccezione**), **terminando** il programma (??? OPPURE **senza terminare** bruscamente il programma ???). Gli errori gestiti includono:
@@ -518,16 +524,14 @@ linguaggio imperativo didattico che mira alla formalizzazione dello _pseudocodic
 infatti il nostro obiettivo è modellare programmi definiti come pseudocidce, ovvero sequenze di comandi separati da punti
 e virgola: \textit{com1 ; com2 ; $\cdots$} per la quale si impongno le condizioni di Turing-completezza \textbf{TODO : Inserire punti da libro di Fondamenti di turing-completezza}.
 
-Dato un codice di esempio:
-$$
-\texttt{$i = 0$; while($i < 9$) $\{ i = i + 1 \}$}
-$$
-i programmi trasformano dunque la memoria in maniera intuitivamente legata a quanto descritto:
-$$
-[i \mapsto 3] \overset{[\![ \textit{PseudoCodeIntp} ]\!] (i = 0;\texttt{while}(i < 9)\{i = i+1 \})}{\xrightarrow{\hspace{5cm}}} [i \mapsto 9]
-$$
-Analizziamo formalmente come è descritto la trasformazione della memoria attraverso i sistemi di transizione associati
-al sistema formale predisposto dal linguaggio da noi progettato.
+> Dato un codice di esempio:
+> $$\texttt{$i = 0$; while($i < 9$) $\{ i = i + 1 \}$}$$
+> i programmi trasformano dunque la memoria in maniera intuitivamente legata a quanto descritto:
+>
+> $$[i \mapsto 3] \overset{[\![ \textit{PseudoCodeIntp} ]\!] (i = 0;\texttt{while}(i < 9)\{i = i+1 \})}{\xrightarrow{\hspace{5cm}}} [i \mapsto 9]$$
+> 
+> Analizziamo formalmente come è descritto la trasformazione della memoria attraverso i sistemi di transizione associati
+> al sistema formale predisposto dal linguaggio da noi progettato.
 
 ###  Definizione di semantica attraverso _sistemi di transizione_:
 Il nostro linguaggio è classificabile come **_staticamente tipizzato_**, ciò è stato attuato attraverso un sistema di
@@ -561,14 +565,23 @@ $$
 \textbf{If}\ \frac{\langle \Gamma ,\texttt{exp} \rangle \to \texttt{exp'}}{\langle \Gamma, \texttt{if (exp) { com }} \rangle \to \langle \Gamma, \texttt{if (exp') { com }} \rangle}
 $$
 $$
-\textbf{ifElse}\ \frac{\text{--}}{\langle \Gamma,\texttt{if ($\tau$) { com }} \rangle \to \langle \Gamma, \texttt{com} \rangle} \ \tau = \texttt{bool}
+\textbf{IfElse}\ \frac{\text{--}}{\langle \Gamma,\texttt{if ($\tau$) { com }} \rangle \to \langle \Gamma, \texttt{com} \rangle} \ \tau = \texttt{bool}
 $$
+A riguardo del costrutto di selezione multipla _switch_ possiamo affermare che data la sintassi astratta del costrutto:
+$$
+\texttt{switch } e \texttt{ \{case } v_1: c_1; \dots; \texttt{case } v_n: c_n; \texttt{default}: c_d \texttt{\}}
+$$
+dove $\Gamma$ rappresenta la **memoria**, $e$ è l'**espressione** da valutare, $v_i$ i **valori costanti** dei case letterali (interi, stringhe, booleani, ecc.), $c_i$ i **comandi associati a ciascun case**, $c_d$ è il **comando opzionale** del ramo **default**. La semantica dinamica associata è definita nel seguito. Esattamente come nella regola semantica del costrutto _If_, finché l'espressione di controllo non è ridotta a un valore terminale $v$, lo switch deve far progredire la valutazione di $e$:
+$$
+\frac{\langle \Gamma , e \rangle \to e'}{\langle \Gamma, \texttt{switch } e \texttt{ \{ $\cdots$ \}} \rangle \to \langle \Gamma, \texttt{switch } e' \texttt{ \{ $\cdots$ \}} \rangle}
+$$
+
 A questo punto, cosa succede se \texttt{exp} non restituisce un valore di tipo booleano? L'interprete genera un errore,
 ae indicare che la tipizzazione non è riuscita. Infine, analizziamo l'evoluzione della semantica delle sequenze di comandi:
 $$
 \textbf{Seq}\ \frac{\langle \Gamma , \texttt{com}_1 \rangle \to \langle \Gamma', \texttt{com}_1' \rangle}{\langle \Gamma , \texttt{com}_1 ; \texttt{com}_2 \rangle \to \langle \Gamma', \texttt{com}_1' ; \texttt{com}_2 \rangle} \qquad \qquad \textbf{SeqE}\ \frac{\text{--}}{\langle \Gamma, \epsilon ; \texttt{com}_2 \rangle \to \langle \Gamma , \texttt{com}_2 \rangle}
 $$
-La valutazione si interrompe quando \texttt{com} restituisce una configurazione vuota $\langle \Gamma,\epsilon \rangle$, ciò significa che il programma è ben tipizzato.
+La valutazione si interrompe quando $\texttt{com}$ restituisce una configurazione vuota $\langle \Gamma,\epsilon \rangle$, ciò significa che il programma è ben tipizzato.
 
 ## 5. Implementazione
 
