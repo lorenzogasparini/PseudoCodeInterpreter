@@ -14,10 +14,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Questo step ci mostrerà l'esatta struttura delle cartelle su GitHub
-      - name: Controlla struttura file
-        run: |
-          echo "=== Cartella corrente ==="
-          pwd
-          echo "=== Contenuto della cartella ==="
-          ls -R
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # Impostiamo la working-directory corretta puntando a PseudoCode
+      - name: Run Tests with Maven
+        run: mvn clean test
+        working-directory: PseudoCode
