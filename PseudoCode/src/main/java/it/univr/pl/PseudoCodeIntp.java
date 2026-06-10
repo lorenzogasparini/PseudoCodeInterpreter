@@ -216,7 +216,6 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
             //  Dal momento che il comando di default se esiste si trova per ultimo (vedi grammatica: ...
             //  (DEFAULT ':' LBRACE com RBRACE)? RBRACE ...) sappiamo di doverlo andare a cercare in ctx.com().size()-1
             int defaultIndex = ctx.com().size()-1;
-            interpreter.visitCom(ctx.com(defaultIndex));
             if (defaultIndex >= 0 && ctx.com(defaultIndex) != null) {
                 interpreter.visitCom(ctx.com(defaultIndex));
             }
@@ -242,7 +241,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
     @Override
     public ComValue visitNonDet(PseudoCodeParser.NonDetContext ctx) {
         int rndIdx = new Random().nextInt(ctx.com().size());
-        visitCom(ctx.com(rndIdx));
+        new PseudoCodeIntp(mem).visitCom(ctx.com(rndIdx));
         return ComValue.INSTANCE;
     }
 
@@ -433,8 +432,13 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
     public ExpValue<?> visitArrayVal(PseudoCodeParser.ArrayValContext ctx) {
         String id = ctx.ID().getText();
         String index = ctx.INT().getText();
+        String key = id + "_" + index;
 
-        return mem.getValue(id + "_" + index);
+        if (!mem.contains(key)) {
+            throw new RuntimeException("Array index out of bounds: " + index);
+        }
+
+        return mem.getValue(key);
     }
 
     @Override

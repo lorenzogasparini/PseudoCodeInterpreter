@@ -213,7 +213,6 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
                     PseudoCodeTS typeSystemSwitch = new PseudoCodeTS(typeMap);
                     typeSystemSwitch.visitCom(ctx.com(i));
                 } else{
-                    //  TODO: capire come predisporre al meglio il numero della riga di errore nella stampa
                     throw new TypeMismatchException("Type mismatch in switch case.\n@" + ctx.start.getLine() + "-" + ctx.com().indexOf(ctx.com(i)));
                 }
             }

@@ -7,16 +7,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Main {
 
-    /* TEST SWITCH:
-
-    switch(x){
-        case 1 : {x <- 2}
-        case 2 : {x <- x^2; y <- x+1}
-        default : {x <- x+3}
-    }
-
-    */
-
     private static final String IN1 =
     """
     int counter <- 0;
@@ -53,26 +43,28 @@ public class Main {
     }                
     """;
 
-    private static final String IN10 =
+    private static final String IN =
     """
     int y[] <- {81,20};
     string a[] <- {"Prova1","Prova2","Prova1"};
     if(a[1] == "Prova2") then {
-        disp "ciao"
+        disp a[3]
     }
     """;
 
-    private static final String IN =
+    private static final String IN10 =
     """
     int x <- 0;
-    if(x == 0) then {
-        int y <- 0
-    };
-    y <- y+1
+    switch (x) {
+        default : {
+            disp "ciao"
+        }
+    }
     """;
 
     public static void main(String[] args) {
-        String prog = Program.programma;
+        //String prog = Program.programma;
+        String prog = IN;
         CharStream cs = CharStreams.fromString(prog);
         PseudoCodeLexer lexer = new PseudoCodeLexer(cs);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
