@@ -27,13 +27,13 @@
 
 - **Tipizzazione statica** con tipi di dominio general purpose per i linguaggi di programmazione (`int`, `dec`, `bool`, `char`, `string`).
 - **Espressioni aritmetico-logiche** complete con precedenza degli operatori.
-- **Costrutti iterativi e condizionali di base**: `while`, `for`, `if`-`else`.
+- **Costrutti iterativi e condizionali di base**: `while`, `if`-`else`.
 - **Arrays** come struttura dati di base.
 - **Switch/case** come costrutto di selezione aggiuntivo.
 - **Non determinismo** atto al supporto per un costrutto di scelta non deterministica, che esegue
   un comando tratto da una lista con una probabilità proporzionale alla dimensione
   della lista.
-- **Zucchero sintattico**: assegnamenti composti (`+=`, `-=`, `*=`, `/=`), incremento e decremento unitario (`++`, `--`), **?????operatore ternario (`_ ? _ : _`)???????**, e interpolazione di espressioni nelle stringhe (`i"...${expr}..."`).
+- **Zucchero sintattico**: assegnamenti composti (`+=`, `-=`), incremento e decremento unitario (`++`, `--`), **operatore ternario** per espressioni (`_ ? _ : _`), e interpolazione di espressioni nelle stringhe (`"...${expr}..."`).
 - **Gestione degli errori**: divisione per zero, accesso fuori dai limiti di un array, variabile non dichiarata, errori di tipo (tutti gestiti con messaggi esplicativi), errori nell'utilizzo scorretto del costrutto switch/case.
 
 ## 2. Guida rapida
@@ -58,6 +58,19 @@ otterremo i risultati:
 > 
 > Type checking superato con successo!
 >
+
+#### Test comando disp
+Dato il programma di esempio che rappresenta l'utilizzo del comando _disp_ per la stampa a video:
+```
+string a <- "testo";
+disp a
+```
+otterremo i risutati:
+> testo
+> 
+> { a[string]:testo }
+> 
+> Type checking superato con successo!
 
 #### Test costrutti iterativi e selezione
 Dato il programma di esempio che ben rappresenta i _costrutti iterativi e selezione_
@@ -280,7 +293,7 @@ otterremo i risultati:
 >
 
 ## 3. Sintassi
-La sintassi dell'interprete _PseudoCodeInterpreter_ è definita attraverso una grammatica di tipo CF, implementata attraverso il file ANTLR4 `PseudoCode.g4`, si fornisce nel seguito una rappresentazione formale della stessa:
+La sintassi dell'interprete _PseudoCodeInterpreter_ è definita attraverso una grammatica di tipo CF, nella particolare notazione **Extended Backus–Naur Form** (_**EBNF**_), implementata attraverso il file ANTLR4 `PseudoCode.g4`, si fornisce nel seguito una rappresentazione formale della stessa:
 $$
 \begin{aligned}
 \langle com \rangle \rightarrow & \ \langle type \rangle \ \text{ID} \ [ \ \text{'<-'} \ \langle exp \rangle ] \\
@@ -327,11 +340,13 @@ L'insieme dei simboli terminali è ben rappresentato da:
 | **Simboli terminali specificatori di simboli operatore e di assegnmento** |                                                                                                                      | `<-`, `+=`, `-=`, `++`, `--`, `^`, `*`, `/`, `+`, `-`, `<`, `<=`, `>=`, `>`, `==`, `!=`, `?` |
 | **Simboli terminali specificatori di delimitatori e punteggiatura**       |                                                                                                                      | `[`, `]`, `{`, `}`, `(`, `)`, `,`, `:`, `;`, `@`                                             |                                      |
 
-La categoria sintattica dei **comandi** è ben rappresentata da _com_ nella grammatica ANTLR4, che rappresenta inoltre il simbolo iniziale della grammatica. La categoria sintattica delle espressioni è ben caratterizzata in termini semantici dai tipi definiti esplicitamente attraverso il concetto di `Type` (definito nell' opportuno package _type_) e implementati attaverso la interfaccia con i semplici _valori_ nella rappresentazione data dalla macchina astratta di livello inferiore nella gerarchia delle macchine astratte (nel nostro caso è la macchina ospitante l'esecuzione ovvero il linguaggio Java).
+La categoria sintattica dei **comandi** è ben rappresentata da _$\langle$com$\rangle$_ nella grammatica ANTLR4, che rappresenta inoltre il simbolo iniziale della grammatica. La categoria sintattica delle **espressioni** è ben caratterizzata in termini semantici dai tipi definiti esplicitamente attraverso il concetto di `Type` (definito nell' opportuno package _type_) e implementati attaverso la interfaccia con i semplici _valori_ nella rappresentazione data dalla macchina astratta di livello inferiore nella gerarchia delle macchine astratte (nel nostro caso è la macchina ospitante l'esecuzione ovvero il linguaggio Java).
 
 ### 3.1 Struttura di un programma
+La struttura dei programmi definiti in **PseudoCode** prevede un unico macro-blocco di codice, senza la possibilità di definire funzioni o classi e per cui l'unica possibilità di definire blocchi è attraverso i comandi dei costrutti condizionali e iterativi. 
 
 ### 3.2 Tipi di dato
+Il linguaggio **PseudoCode** predispone una tipizzazione statica, in quanto nella fase precedente al lancio dell'interpretazione del linguaggio si effettua una visita del parsing tree prodotta dall'analizzatore lessicale atta alla caratterizzazione dei tipi fatta dal componente **Type checker** atto alla verifica della concordanza di tipo nell'utilizzo di variabili in legame alla totalità dei costrutti delle categorie sintattiche implementate.
 
 | Tipo     | Descrizione           | Esempio di valore |
 |----------|-----------------------|-------------------|
@@ -341,7 +356,7 @@ La categoria sintattica dei **comandi** è ben rappresentata da _com_ nella gram
 | `string` | Stringa di testo      | `"ciao"`          |
 | `char`   | carattere ASCII       | `'a'`              |
 
-I tipi `int` e `dec` sono tipi rappresentati nel contesto sintattico del nostro linguaggio attraverso il concetto di `num`, per la quale nella grammatica è possibile rappresentare sequenze di tali caratteri in modo che combinati diano luogo ai tipi rappresentati in tabella. I tipi `int` e `dec` sono resi compatibili tra loro nelle espressioni aritmetiche con `Int` e tra loro (attraverso conversione implicita svolta in `TypeUtils/castValue()`).
+I tipi `int` e `dec` sono tipi rappresentati nel contesto sintattico del nostro linguaggio attraverso il concetto di `num`, per la quale nella grammatica è possibile rappresentare sequenze di tali caratteri in modo che combinati diano luogo ai tipi rappresentati in tabella. I tipi `int` e `dec` sono resi compatibili tra loro nelle espressioni aritmetiche (attraverso conversione implicita svolta in `TypeUtils/castValue()`).
 
 Nell'ottica della tipizzazione è utile notare che il linguaggio PseudoCode da noi definito è in grado di gestire particolari strutture di `array`, che però non sono trattate esplicitamente come tipo, seppur la loro semantica statica e dinamica preveda tutti i controlli del caso per l'attuazione di operazioni su tali oggetti. Infatti per un oggetto array nel linguaggio sono possibili solo le possibilità di dichiarazione e assegnamento, predisponendo dunque un particolare tipo di `id`. D'altro canto gli elementi di array di un particolare tipo sono soggetti ai vincoli di integrità di tipo relizzati per i tipi di base.
 
@@ -349,7 +364,7 @@ Nell'ottica delle memorizzazione di variabili in locazioni di memoria si è util
 ### 3.3 Dichiarazione di variabili
 Forniamo di seguito la sintassi prevista per la dichiarazione di variabili, suddivise in base al tipo di riferimento:
 ```
-int x;       // inizializzata al valore di default 0.0
+int x;       // inizializzata al valore di default 0
 int y <- 3;
 int z <- x + y * 2;
 bool a <- true;
@@ -361,8 +376,12 @@ dec w <- z / 2.0
 #### 3.3 Dichiarazione di array di variabili
 Forniamo di seguito la sintassi prevista per la dichiarazione di array di variabili, suddivisi in base al tipo di riferimento:
 ```
-abc
+int y[] <- {81,20};
+y[] <- {30, 31, 20};
+string a[];
+a[] <- {"Prova1","Prova2","Prova1"}
 ```
+Da notare che la gestione in memoria degli array è di tipo dinamico (di **dimensione variabile**), ovvero gli array sono intesi come lista di elementi opportunamento indicizzati, per la quale la dimensione non è fissata ma modificabile attraverso nuovi assegnamenti.
 
 ### 3.4 Assegnamenti
 
@@ -374,7 +393,7 @@ x *= 3;       // equivalente a x = x * 3
 x /= 4;       // equivalente a x = x / 4
 x++;          // post-incremento, incremento unitario dopo la valutazione
 x--;          // post-decremento, decremento unitario dopo la valutazione
-x <- {1,2,3}  // assegnamento ad array di variabili di tipo int già dichiarato
+x <- {1,2,3};  // assegnamento ad array di variabili di tipo int già dichiarato
 x[0] <- 1     // assegnamento ad elemento di un array di variabili di tipo int già dichiarato
 ```
 
@@ -395,14 +414,14 @@ Le espressioni supportano la **precedenza standard** degli operatori (dal più b
 
 **Operatore ternario:**
 ```
-String msg = (porzioni > 1) ? "porzioni" : "porzione";
+String msg = (guardia > 1) ? "ok" : "test";
 ```
-La variabile `msg` viene assegnata con la stringa *"porzioni"* se la variabile `porzioni` è maggiore di 1. VIene assegnato con la stringa *"porzione"* altrimenti.
+La variabile `msg` viene assegnata con la stringa *"ok"* se la variabile `guardia` è maggiore di 1. Viene assegnato con la stringa *"test"* altrimenti.
 
 ### 3.6 Costrutti di controllo
 **Condizionale o di Selezione:**
 ```
-if (a > 1) {
+if (a > 1) then {
     disp "a maggiore di 1";
 } else {
     disp "a minore o uguale a 1";
@@ -425,7 +444,7 @@ switch(y){
 
 **Ciclo while:**
 ```
-Int i = 0;
+int i = 0;
 repeat while (counter < 5) {
     counter++
 }
@@ -446,17 +465,12 @@ string settimana[] <- {"lunedi", "martedi", "mercoledi", "giovedi", "venerdi", "
 int lunedi = 1;
 disp "il primo giorno della settimana è ${settimana[lunedi]}";
 
-int x[] <- {100, 101, 102}    // dichiarazione di array
-x <- {1,2,3}                  // assegnamento ad array di variabili di tipo int già dichiarato
+int x[] <- {100, 101, 102};    // dichiarazione di array
+x <- {1,2,3};                  // assegnamento ad array di variabili di tipo int già dichiarato
 x[0] <- 1                     // assegnamento ad elemento di un array di variabili di tipo int già dichiarato
 ```
 
-### 3.9 Uscita dal programma
-$$
-\cdots \text{ completare eventualmente }\cdots
-$$
-
-### 3.10 Commenti
+### 3.9 Commenti
 ```
 int a <- 1        // dichiarazione di variabile
 if(a == 1) then { // ramo then del costrutto di controllo
@@ -466,29 +480,40 @@ if(a == 1) then { // ramo then del costrutto di controllo
 }
 ```
 
-### 3.11 Regole lessicali principali
-- Gli identificatori iniziano con una lettera o `_`, seguiti da lettere, cifre, o `_`.
+### 3.10 Regole lessicali principali
+- Gli identificatori iniziano con una lettera, seguiti da lettere o cifre.
 - Le keyword sono case-sensitive e riservate (ad esempio, `if`, `while`, `for`, `true`, `false`, i nomi dei tipi).
 - I blocchi sono delimitati da `{` e `}`.
-- Ogni sequenza di statement composta da almeno due statement termina con `;` (tranne l'ultimo statement, questo espediente viene utilizzato per predisporre un termine di _lookahead_ per la verifica della terminazione del blocco di codice.
+- Ogni coppia di statement ha un simbolo di `;` che la divide.
 - Gli spazi bianchi e le tabulazioni sono ignorati.
 - I commenti sono ignorati nell'esecuzione.
+
+### 3.11 Peculiarità tecniche della sintassi
+La analisi sintattica delle operazioni aritmetiche implica l'inserimento di un spazio tra operando e operatore nell'eventualità che esso sia di tipo valore numerico con segno negativo (dove per valore numerico con segno negativo si adotta la notazione per cui segno e valore devono essere contigui, non separati da spazi), al fine di evitare conflitti con le categorie sintattiche _comandi_ e _espressioni_ (valori numerici negativi). 
+```
+int y[] <- {81,20};
+int x <- 10;
+int z <- 0;
+if(z == 0) then {
+  x <- (x - 3)*2
+}
+```
 
 ## 4. Semantica
 
 ### 4.1 Tipizzazione
 PseudoCode adotta **tipizzazione statica**: ogni variabile deve essere dichiarata con un tipo esplicito, e il tipo non può cambiare durante l'esecuzione. Le verifiche di tipo avvengono prima di eseguire un programma tramite un **type system** (implementato attraverso la classe _PseudoCodeTS_, il quale riporta errori segnalati con messaggi descrittivi. Gli errori gestiti staticamente includono:
 
-| Errore                        | Messaggio                                                  |
-|-------------------------------|------------------------------------------------------------|
-| Variabile non dichiarata      | *"Errore di tipo: variabile 'x' usata ma non dichiarata"*  |
-| Tipo incompatibile            | *"Errore di tipo: operazione non valida tra Int e Bool"*   |
-| Assegnamento di tipo errato   | *"Errore di tipo: atteso Gram, trovato String"*            |
+| Errore                        | Messaggio                                                                                                      |
+|-------------------------------|----------------------------------------------------------------------------------------------------------------|
+| Variabile non dichiarata      | *"Variable a assigned but never declared."*                                                      |
+| Tipo incompatibile            | *"Type mismatch: numeric expression expected."*                                                                |
+| Assegnamento di tipo errato   | *"Variable x cannot be assigned with type."*, dove **x** è la variabile di riferimento e type è il tipo erroneo. |
 
 ### 4.2 Visibilità e scoping
-PseudoCode adotta lo **scoping lessicale** con **shadowing**. Ogni blocco `{ ... }` introduce un nuovo ambiente. Una variabile dichiarata in un blocco interno può avere lo stesso nome di una variabile esterna (la variabile interna la nasconde all'interno del blocco). All'uscita dal blocco, la variabile esterna ritorna visibile.
+PseudoCode adotta lo **scoping lessicale** senza **shadowing**. Ogni blocco `{ ... }` introduce un nuovo ambiente ma non è possibile dichiarare in esso variaibili globali già definite. In tale situazioe si ottiene un errore di tipo `Variable x already declared`.
 
-Gli identificatori (fortemente tipati) a locazione di memoria dichiarati in qualsiasi punto del codice risiedono nella memoria globale (rappresentata dalla struttura dati predisposta nella classe _Mem_) del programma e sono visibili da qualsiasi punto del programma.
+Gli identificatori a locazione di memoria (fortemente tipati), dichiarati in qualsiasi punto del codice, risiedono nella memoria globale (rappresentata dalla struttura dati predisposta nella classe _Mem_) del programma e sono visibili da qualsiasi punto del programma.
 
 ### 4.3 Valutazione delle espressioni
 Le espressioni sono valutate in modo standard: tutti gli operandi vengono valutati prima dell'applicazione dell'operatore. Gli operatori logici `AND` e `OR` **non** adottano la semantica short-circuit.
@@ -519,15 +544,13 @@ Gli errori a tempo d'esecuzione vengono intercettati dall'`interprete` e dal `ty
 ### 4.6 Semantica operazionale
 
 ### Introduzione
-Date le scelte progettuali effettuate per la implementazione del linguaggio e del relativo interprete: _PseudoCodeInterpreter_ e
+Date le scelte progettuali effettuate per la implementazione del linguaggio e del relativo interprete (_PseudoCodeInterpreter_) e
 data la definizione di linguaggio di programmazione che rappresenta un sistema formale in grado di modellare il concetto
-di _Turing-calcolabilità_, per prima cosa sono stati introdotti i costrutti dati da _struttre di assegnamento_, _strutture condizionali_ e _strutture iterative_,
-ottenendo dunque un linugaggio che ha caratteristiche di Turing-completezza.
+di _Turing-calcolabilità_, per prima cosa sono stati introdotti i costrutti _struttre di assegnamento_, _strutture condizionali_ e _strutture iterative_,
+ottenendo dunque un linugaggio che ha caratteristiche di **Turing-completezza**.
 
 Nella nostra trattazione, l'interprete _PseudoCodeIntp_ descritto nel seguito, è atto ad interpretare un semplice
-linguaggio imperativo didattico che mira alla formalizzazione dello _pseudocodice_ opportunamente alle scelte implementative descritte precedentemente (\textbf{TODO : COMPLETARE SUCCESSIVAMENTE},
-infatti il nostro obiettivo è modellare programmi definiti come pseudocidce, ovvero sequenze di comandi separati da punti
-e virgola: \textit{com1 ; com2 ; $\cdots$} per la quale si impongno le condizioni di Turing-completezza \textbf{TODO : Inserire punti da libro di Fondamenti di turing-completezza}.
+linguaggio imperativo didattico che mira alla formalizzazione dello _pseudocodice_ opportunamente alle scelte implementative descritte precedentemente.
 
 > Dato un codice di esempio:
 > $$\texttt{$i = 0$; while($i < 9$) $\{ i = i + 1 \}$}$$
@@ -541,8 +564,7 @@ e virgola: \textit{com1 ; com2 ; $\cdots$} per la quale si impongno le condizion
 ###  Definizione di semantica attraverso _sistemi di transizione_:
 Il nostro linguaggio è classificabile come **_staticamente tipizzato_**, ciò è stato attuato attraverso un sistema di
 tipi per veriﬁcare  la conformità dei tipi in fase di  compilazione:
-Per attuare ciò -ovvero un linguaggio imperativo staticamente tipizzato-, si introducono le dichiarazioni dei tipi
-delle variabili: _TypedImp_. Deﬁniremo un elenco della forma $\texttt{string } x, \cdots; \texttt{dec } y;$; atto alla
+Deﬁniremo un elenco di tipi della forma $\texttt{string } x, \cdots; \texttt{dec } y;$; atto alla
 dichiarazione delle variabili tipate. Le variabili hanno  dichiarazioni di tipo singole. Avremo inoltre bisogno di un
 sistema di tipi (type system) per il linguaggio, attraverso  il quale attuare inferenza dei tipi per ciascun elemento
 dell'albero  di analisi, veriﬁca della conformità dei tipi con  le dichiarazioni delle variabili e la  semantica dei comandi e che funzioni in fase di compilazione (cioè prima di tentare
@@ -558,7 +580,7 @@ conversione di tipo. Analizziamo ora la semantica della componente di interprete
 $$
 \Gamma \in \mathcal{X}\to \mathcal{T}
 $$
-si associano le variabili ai tipi. I tipi sono quelli  deﬁniti nel linguaggio: $\texttt{int, dec,}$ $\texttt{bool, string}$:
+si associano le variabili ai tipi. I tipi sono quelli  deﬁniti nel linguaggio: $\texttt{int, dec, bool, string, char}$:
 $$
 \textbf{Decl}\ \frac{\text{--}}{\langle \Gamma, \tau x \rangle \to \langle \Gamma[{}^{\tau}/x],\epsilon \rangle}\ \Gamma(x)\text{ undefined}
 $$
@@ -578,11 +600,23 @@ $$
 $$
 dove $\Gamma$ rappresenta la **memoria**, $e$ è l'**espressione** da valutare, $v_i$ i **valori costanti** dei case letterali (interi, stringhe, booleani, ecc.), $c_i$ i **comandi associati a ciascun case**, $c_d$ è il **comando opzionale** del ramo **default**. La semantica dinamica associata è definita nel seguito. Esattamente come nella regola semantica del costrutto _If_, finché l'espressione di controllo non è ridotta a un valore terminale $v$, lo switch deve far progredire la valutazione di $e$:
 $$
-\frac{\langle \Gamma , e \rangle \to e'}{\langle \Gamma, \texttt{switch } e \texttt{ \{ $\cdots$ \}} \rangle \to \langle \Gamma, \texttt{switch } e' \texttt{ \{ $\cdots$ \}} \rangle}
+\textbf{Switch}\ \frac{\langle \Gamma , e \rangle \to e'}{\langle \Gamma, \texttt{switch } e \texttt{ \{ $\cdots$ \}} \rangle \to \langle \Gamma, \texttt{switch } e' \texttt{ \{ $\cdots$ \}} \rangle}
 $$
 
-A questo punto, cosa succede se \texttt{exp} non restituisce un valore di tipo booleano? L'interprete genera un errore,
-ae indicare che la tipizzazione non è riuscita. Infine, analizziamo l'evoluzione della semantica delle sequenze di comandi:
+A questo punto, cosa succede se $\texttt{exp}$ non restituisce un valore di tipo booleano? L'interprete genera un errore,
+ae indicare che la tipizzazione non è riuscita. 
+
+Analizziamo ora il costrutto iterativo **repeat while**. Esso è descritto in termini di semantica astratta come:
+$$
+\texttt{repeat while (} e \texttt{) \{ } c \texttt{ \}}
+$$
+da cui deduciamo la definizione in semantica dinamica:
+$$
+\frac{\langle \Gamma , e \rangle \to e'}{\langle \Gamma, \texttt{repeat while (} e \texttt{) \{ } c \texttt{ \}} \rangle \to \langle \Gamma, \texttt{repeat while (} e' \texttt{) \{ } c \texttt{ \}} \rangle}
+$$
+dove $\Gamma$ rappresenta ancora una volta lo stato della memoria attuale, $e$ rappresenta l'**espressione** di controllo ($\texttt{exp}$), $c$ il blocco di **comandi** interno al ciclo ($\texttt{com}$), e dove notiamo che il ciclo valuta prima di tutto la condizione $e$ : se è falsa l'esecuzione termina immediatamente senza variazioni, se è vera esegue il corpo dei comandi $c$ in un nuovo scope e poi richiama ricorsivamente se stesso.
+
+Infine, analizziamo l'evoluzione della semantica delle **sequenze di comandi**:
 $$
 \textbf{Seq}\ \frac{\langle \Gamma , \texttt{com}_1 \rangle \to \langle \Gamma', \texttt{com}_1' \rangle}{\langle \Gamma , \texttt{com}_1 ; \texttt{com}_2 \rangle \to \langle \Gamma', \texttt{com}_1' ; \texttt{com}_2 \rangle} \qquad \qquad \textbf{SeqE}\ \frac{\text{--}}{\langle \Gamma, \epsilon ; \texttt{com}_2 \rangle \to \langle \Gamma , \texttt{com}_2 \rangle}
 $$
@@ -632,7 +666,7 @@ PseudoCode/
 ```
 
 ### 5.2 Interprete
-L'interprete è implementato come un **visitor** generato da ANTLR4 (`PseudoCodeVisitor`) in classe Java. La classe principale `PseudoCodeInterpreter` estende `PseudoCodeVisitor` e sovrascrive il metodo `visit*` per ogni produzione della grammatica in maniera tale da esplicitare la semantica voluta per la produzione, una volta in fase di analisi semantica e dunque nella visita dell'albero sintattico annotato e valorizzato.
+L'interprete è implementato come un **visitor** generato da ANTLR4 (`PseudoCodeVisitor`) in classe Java. La classe principale `PseudoCodeIntp` estende `PseudoCodeVisitor` e sovrascrive il metodo `visit*` per ogni produzione della grammatica in maniera tale da esplicitare la semantica voluta per la produzione, una volta in fase di analisi semantica e dunque nella visita dell'albero sintattico annotato e valorizzato.
 
 Il metodo `visitMain` predispone la visita del primo comando del programma e dunque segna l'inizio della computazione, in questi termini. Lo stato è mantenuto attraverso una memoria (`Mem`).
 

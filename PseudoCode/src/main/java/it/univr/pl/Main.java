@@ -33,17 +33,17 @@ public class Main {
             int rand1 <- input @ int rand2 <- input
             """;
 
-    private static final String NONFUNZIONANTE =
+    private static final String IN9 =
     """
     int y[] <- {81,20};
-    int x <- 0;
+    int x <- 10;
     int z <- 0;
     if(z == 0) then {
-        x <- (x-3)*2
+        x <- (x - 3)*2
     }
     """;
 
-    private static final String IN =
+    private static final String IN3 =
     """
     int y[] <- {81,20};
     int x <- 0;
@@ -51,6 +51,24 @@ public class Main {
     if(z == 0) then {
         x <- y[1]*3
     }                
+    """;
+
+    private static final String IN10 =
+    """
+    int y[] <- {81,20};
+    string a[] <- {"Prova1","Prova2","Prova1"};
+    if(a[1] == "Prova2") then {
+        disp "ciao"
+    }
+    """;
+
+    private static final String IN =
+    """
+    int x <- 0;
+    if(x == 0) then {
+        int y <- 0
+    };
+    y <- y+1
     """;
 
     public static void main(String[] args) {

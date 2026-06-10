@@ -111,7 +111,12 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
                     mem.updateValue(id + "_" + ctx.INT().getText(), val);
                 }
                 else if(ctx.ID(1) == null && ctx.INT() == null){ // assegnazione array intero (es. a[] <- {1, 2, 3}
-                    mem.updateValue(id + "_" + ctx.exp().indexOf(ex), val);
+                    if(!mem.contains(id + "_" + ctx.exp().indexOf(ex))) {
+                        mem.add(id + "_" + ctx.exp().indexOf(ex), val);
+                    }
+                    else {
+                        mem.updateValue(id + "_" + ctx.exp().indexOf(ex), val);
+                    }
                 }
             }
         }
