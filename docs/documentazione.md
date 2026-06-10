@@ -352,9 +352,9 @@ Il linguaggio **PseudoCode** predispone una tipizzazione statica, in quanto nell
 |----------|-----------------------|-------------------|
 | `int`    | Intero con segno      | `42`, `-3`        |
 | `dec`    | Numero in virgola mobile | `3.14`, `-0.5`    |
-| `bool`   | Valore booleano       | `true`, `false`   |
+| `bool`   | Valore booleano       | `T`, `F`          |
 | `string` | Stringa di testo      | `"ciao"`          |
-| `char`   | carattere ASCII       | `'a'`              |
+| `char`   | carattere ASCII       | `'a'`             |
 
 I tipi `int` e `dec` sono tipi rappresentati nel contesto sintattico del nostro linguaggio attraverso il concetto di `num`, per la quale nella grammatica è possibile rappresentare sequenze di tali caratteri in modo che combinati diano luogo ai tipi rappresentati in tabella. I tipi `int` e `dec` sono resi compatibili tra loro nelle espressioni aritmetiche (attraverso conversione implicita svolta in `TypeUtils/castValue()`).
 

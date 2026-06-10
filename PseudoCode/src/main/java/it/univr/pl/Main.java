@@ -18,20 +18,20 @@ public class Main {
     */
 
     private static final String IN1 =
-            """
-            int counter <- 0;
-            int flag <- 0;
-            repeat while (counter < 5) {
-                counter++
-            };
-            if ('a') then {
-                flag <- 1
-            } else {
-                flag <- 2
-            };
-            int input <- read int;
-            int rand1 <- input @ int rand2 <- input
-            """;
+    """
+    int counter <- 0;
+    int flag <- 0;
+    repeat while (counter < 5) {
+        counter++
+    };
+    if ('a') then {
+        flag <- 1
+    } else {
+        flag <- 2
+    };
+    int input <- read int;
+    int rand1 <- input @ int rand2 <- input
+    """;
 
     private static final String IN9 =
     """
@@ -72,7 +72,7 @@ public class Main {
     """;
 
     public static void main(String[] args) {
-        String prog = IN;
+        String prog = Program.programma;
         CharStream cs = CharStreams.fromString(prog);
         PseudoCodeLexer lexer = new PseudoCodeLexer(cs);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
