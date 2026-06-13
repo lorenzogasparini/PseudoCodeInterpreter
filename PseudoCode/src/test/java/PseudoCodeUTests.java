@@ -382,7 +382,7 @@ public class PseudoCodeUTests {
     public void testIndiceFuoriBoundConId() {
         String code = """
             int a[] <- {1,2};
-            i <- 5;
+            int i <- 5;
             a[i] <- 10
             """;
 
