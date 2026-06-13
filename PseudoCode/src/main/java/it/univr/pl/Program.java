@@ -1,7 +1,7 @@
 package it.univr.pl;
 
 public class Program {
-    static final String programma =
+    static final String programmaTest =
     """
     int x <- 5;
     int y <- 2;

@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Main {
 
+    /*
     private static final String IN1 =
     """
     int counter <- 0;
@@ -43,15 +44,6 @@ public class Main {
     }                
     """;
 
-    private static final String IN =
-    """
-    int y[] <- {81,20};
-    string a[] <- {"Prova1","Prova2","Prova1"};
-    if(a[1] == "Prova2") then {
-        disp a[3]
-    }
-    """;
-
     private static final String IN10 =
     """
     int x <- 0;
@@ -61,6 +53,22 @@ public class Main {
         }
     }
     """;
+     */
+
+    private static final String IN =
+    """
+    int counter <- 0;
+    int flag <- 0;
+    repeat while (counter < 5) {
+        counter++
+    };
+    if (counter == 5) then {
+        flag <- 1
+    } else {
+        flag <- 2
+    }
+    """;
+
 
     public static void main(String[] args) {
         //String prog = Program.programma;

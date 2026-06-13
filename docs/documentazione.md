@@ -42,6 +42,36 @@
 - **Java 11** o superiore, necessario per ANTLR
 - **ANTLR 4** (versione 4.13.2 o superiore)
 - **JUnit** (versione 5.10.0 o superiore), per l'esecuzione dei test inclusi in `PseudoCodeInterpreter/PseudoCode/src/test`
+- **IntelliJ**
+
+### Pipeline di Compilazione ed Esecuzione
+
+Al fine di garantire un'esecuzione rapida e priva di errori di configurazione, il progetto è stato strutturato per essere compilato ed eseguito avvalendosi dell'IDE **IntelliJ** e del sistema di build **Maven**.
+
+#### Configurazione dell'ambiente
+Per la corretta inizializzazione dell'ambiente di sviluppo si proceda come segue:
+* **Importazione** della cartella di progetto all'interno di IntelliJ IDEA.
+* **Installazione del plugin** *ANTLR v4* (`Settings > Plugins`).
+* **Sincronizzazione del progetto Maven**: ricaricare il progetto (cliccando sull'icona *Reload* nel pannello Maven laterale). Tale operazione consente all'IDE di effettuare il download automatico di tutte le dipendenze necessarie (runtime ANTLR, librerie Apache e JUnit).
+
+#### Generazione del Lexer e del Parser (Compilazione)
+La generazione del codice relativo all'analisi sintattica è svolta dal plugin Maven per ANTLR. La procedura richiede di:
+* eseguire la fase `clean` (per la rimozione di eventuali artefatti di build preesistenti)
+* Eseguire la fase `compile`. Durante questo step, il plugin processerà la grammatica `PseudoCode.g4`, generando automaticamente il Lexer, il Parser e le classi Visitor all'interno della directory `target/generated-sources/antlr4` (che deve essere marcata come 'Generated source root').
+
+#### Esecuzione dell'interprete
+Per valutare l'esecuzione dei programmi scritti nel linguaggio PseudoCode:
+* Accedere al file `Main.java` collocato nel percorso `src/main/java/it/univr/pl/`.
+* All'interno della classe è predisposta una variabile statica `IN` atta a contenere il codice sorgente in formato stringa. È sufficiente modificare il contenuto di tale stringa inserendo il programma da testare.\
+  Alternativamente, utilizzare l'esempio completo presente in `Program.programmaTest` .
+
+
+#### Esecuzione Unit Test
+Al fine di testare le funzionalità implementate, sono stati scritti una serie di Unit test.\
+Per eseguirli:
+* Accedere alla directory `src/test/java/`.
+* Aprire la classe contenente i test (`PseudoCodeUTests`).
+* Avviare l'esecuzione
 
 ### Esecuzione programmi sample
 #### Dichiarazione di variabili e assegnamento di valori
@@ -55,7 +85,7 @@ dec w <- z / 2.0
 otterremo i risultati:
 >
 > { w[dec]:8.0 x[int]:10 y[int]:3 z[int]:16 }
-> 
+>
 > Type checking superato con successo!
 >
 
@@ -67,9 +97,9 @@ disp a
 ```
 otterremo i risutati:
 > testo
-> 
+>
 > { a[string]:testo }
-> 
+>
 > Type checking superato con successo!
 
 #### Test costrutti iterativi e selezione
@@ -89,7 +119,7 @@ if (counter == 5) then {
 otterremo i risultati:
 >
 >{ flag[int]:1 counter[int]:5 }
-> 
+>
 > Type checking superato con successo!
 >
 
@@ -105,7 +135,7 @@ string res <- (a == 6) ? "ok" : "no"
 otterremo i risultati:
 >
 > { a[int]:6 res[string]:ok b[int]:7 }
-> 
+>
 > Type checking superato con successo!
 >
 
@@ -122,13 +152,13 @@ bool f <- NOT t OR (5 > 10)
 otterremo i risultati:
 >
 > line 1:15 no viable alternative at input 'publicvoid'
-> 
+>
 > line 2:20 token recognition error at: '= '
-> 
+>
 > line 2:24 token recognition error at: '"\n'
-> 
+>
 > { }
-> 
+>
 > Type checking superato con successo!
 
 #### Test gestione errore dato da operazione su variabili di tipo diverso
@@ -142,7 +172,7 @@ bool f <- NOT t OR (5 > 10)
 otterremo i risultati:
 >
 > { c[char]:x s[string]:ciao\nmondo t[bool]:true f[bool]:false }
-> 
+>
 > Type checking superato con successo!
 >
 
@@ -155,9 +185,9 @@ a <- "testo"
 otterremo i risultati:
 >
 > Typing error(s) found.
-> 
+>
 > Variable a cannot be assigned with string.
-> 
+>
 > @2:16
 >
 
@@ -195,7 +225,7 @@ switch(x){
 otterremo i risultati:
 >
 > { x[int]:83 }
-> 
+>
 > Type checking superato con successo!
 >
 
@@ -222,9 +252,9 @@ switch(y){
 otterremo i risultati:
 >
 > Typing error(s) found.
-> 
+>
 > Type mismatch in switch case.
-> 
+>
 > @3-1
 >
 
@@ -255,7 +285,7 @@ switch(y){
 otterremo i risultati:
 >
 > Typing error(s) found.
-> 
+>
 > Case duplicate in switch case.
 >
 > @4
@@ -271,7 +301,7 @@ int z <- 0
 otterremo i risultati:
 >
 > { x[int]:0 y_1[int]:82 z[int]:0 y_0[int]:81 }
-> 
+>
 > Type checking superato con successo!
 >
 
@@ -288,7 +318,7 @@ if(z == 0) then {
 otterremo i risultati:
 >
 > { x[int]:60 y_1[int]:20 z[int]:0 y_0[int]:81 }
-> 
+>
 > Type checking superato con successo!
 >
 
@@ -343,7 +373,7 @@ L'insieme dei simboli terminali è ben rappresentato da:
 La categoria sintattica dei **comandi** è ben rappresentata da _$\langle$com$\rangle$_ nella grammatica ANTLR4, che rappresenta inoltre il simbolo iniziale della grammatica. La categoria sintattica delle **espressioni** è ben caratterizzata in termini semantici dai tipi definiti esplicitamente attraverso il concetto di `Type` (definito nell' opportuno package _type_) e implementati attaverso la interfaccia con i semplici _valori_ nella rappresentazione data dalla macchina astratta di livello inferiore nella gerarchia delle macchine astratte (nel nostro caso è la macchina ospitante l'esecuzione ovvero il linguaggio Java).
 
 ### 3.1 Struttura di un programma
-La struttura dei programmi definiti in **PseudoCode** prevede un unico macro-blocco di codice, senza la possibilità di definire funzioni o classi e per cui l'unica possibilità di definire blocchi è attraverso i comandi dei costrutti condizionali e iterativi. 
+La struttura dei programmi definiti in **PseudoCode** prevede un unico macro-blocco di codice, senza la possibilità di definire funzioni o classi e per cui l'unica possibilità di definire blocchi è attraverso i comandi dei costrutti condizionali e iterativi.
 
 ### 3.2 Tipi di dato
 Il linguaggio **PseudoCode** predispone una tipizzazione statica, in quanto nella fase precedente al lancio dell'interpretazione del linguaggio si effettua una visita del parsing tree prodotta dall'analizzatore lessicale atta alla caratterizzazione dei tipi fatta dal componente **Type checker** atto alla verifica della concordanza di tipo nell'utilizzo di variabili in legame alla totalità dei costrutti delle categorie sintattiche implementate.
@@ -489,7 +519,7 @@ if(a == 1) then { // ramo then del costrutto di controllo
 - I commenti sono ignorati nell'esecuzione.
 
 ### 3.11 Peculiarità tecniche della sintassi
-La analisi sintattica delle operazioni aritmetiche implica l'inserimento di un spazio tra operando e operatore nell'eventualità che esso sia di tipo valore numerico con segno negativo (dove per valore numerico con segno negativo si adotta la notazione per cui segno e valore devono essere contigui, non separati da spazi), al fine di evitare conflitti con le categorie sintattiche _comandi_ e _espressioni_ (valori numerici negativi). 
+La analisi sintattica delle operazioni aritmetiche implica l'inserimento di un spazio tra operando e operatore nell'eventualità che esso sia di tipo valore numerico con segno negativo (dove per valore numerico con segno negativo si adotta la notazione per cui segno e valore devono essere contigui, non separati da spazi), al fine di evitare conflitti con le categorie sintattiche _comandi_ e _espressioni_ (valori numerici negativi).
 ```
 int y[] <- {81,20};
 int x <- 10;
@@ -557,7 +587,7 @@ linguaggio imperativo didattico che mira alla formalizzazione dello _pseudocodic
 > i programmi trasformano dunque la memoria in maniera intuitivamente legata a quanto descritto:
 >
 > $$[i \mapsto 3] \overset{[\![ \textit{PseudoCodeIntp} ]\!] (i = 0;\texttt{while}(i < 9)\{i = i+1 \})}{\xrightarrow{\hspace{5cm}}} [i \mapsto 9]$$
-> 
+>
 > Analizziamo formalmente come è descritto la trasformazione della memoria attraverso i sistemi di transizione associati
 > al sistema formale predisposto dal linguaggio da noi progettato.
 
@@ -604,7 +634,7 @@ $$
 $$
 
 A questo punto, cosa succede se $\texttt{exp}$ non restituisce un valore di tipo booleano? L'interprete genera un errore,
-ae indicare che la tipizzazione non è riuscita. 
+ae indicare che la tipizzazione non è riuscita.
 
 Analizziamo ora il costrutto iterativo **repeat while**. Esso è descritto in termini di semantica astratta come:
 $$
