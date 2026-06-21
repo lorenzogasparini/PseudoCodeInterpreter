@@ -394,6 +394,19 @@ public class PseudoCodeUTests {
     }
 
     @Test
+    public void testArrayIndiceVariabile() {
+        String code = """
+                int a[] <- {10, 20, 30};
+                        int i <- 1;
+                        a[i] <- 99;
+                        int result <- a[i]
+                """;
+        Mem finalMem = runCode(code);
+
+        assertEquals(99, finalMem.getValue("result").toJavaValue());
+    }
+
+    @Test
     public void testIndiceFuoriBound() {
         String code = """
             int a[] <- {1,2};

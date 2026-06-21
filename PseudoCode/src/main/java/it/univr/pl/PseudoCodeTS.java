@@ -298,6 +298,13 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
         if (!typeMap.containsKey(id)) {
             throw new VarDeclarationException("Variable " + id + " not declared.\n@" + ctx.start.getLine());
         }
+
+        // indice deve essere un intero
+        ExpType indexType = (ExpType) visit(ctx.exp());
+        if (!indexType.isCompatible(SimpleType.INT)) {
+            throw new TypeMismatchException("Array index must be an integer.\n@" + ctx.start.getLine());
+        }
+
         return typeMap.get(id);
     }
 

@@ -33,6 +33,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
         return mem;
     }
 
+    // metodi helper
     private ComValue visitCom(PseudoCodeParser.ComContext ctx) {
         return (ComValue) visit(ctx);
     }
@@ -81,12 +82,12 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
         ExpType type = TypeUtils.fromString(ctx.TYPE().getText());
         String id = ctx.ID().getText();
 
-        //  mem.add(id, type);  -->  Alloca la variabile in memoria
-
         if (ctx.ASSIGN() != null) {
+            int i = 0;
             for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
                 ExpValue<?> val = visitExp(ex);
-                mem.add(id + "_" + ctx.exp().indexOf(ex), val);
+                mem.add(id + "_" + i, val);
+                i++;
             }
         }
 
@@ -97,27 +98,32 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
     public ComValue visitAssignArray(PseudoCodeParser.AssignArrayContext ctx) {
         String id = ctx.ID(0).getText();
 
-        //  mem.add(id, type); Alloca la variabile in memoria
-
-        if (ctx.ASSIGN() != null) {
+        // Indice variabile (es. a[i] <- 5)
+        if (ctx.ID(1) != null) {
+            String indexVar = ctx.ID(1).getText();
+            int index = (int) mem.getValue(indexVar).toJavaValue();
+            ExpValue<?> val = visitExp(ctx.exp(0));
+            mem.updateValue(id + "_" + index, val);
+        }
+        // Indice costante (es. a[2] <- 5)
+        else if (ctx.INT() != null) {
+            int index = Integer.parseInt(ctx.INT().getText());
+            ExpValue<?> val = visitExp(ctx.exp(0));
+            mem.updateValue(id + "_" + index, val);
+        }
+        // Assegnazione intero array (es. a[] <- {1, 2, 3})
+        else {
+            int i = 0;
             for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
                 ExpValue<?> val = visitExp(ex);
-                if(ctx.ID(1) != null) { // indice variabile (es. a[i] <- 5)
-                    String indexVar = ctx.ID(1).getText();
-                    int index = (int) mem.getValue(indexVar).toJavaValue();
-                    mem.updateValue(id + "_" + index, val);
+                String arrayKey = id + "_" + i;
+
+                if(!mem.contains(arrayKey)) {
+                    mem.add(arrayKey, val); // aumento dimensione array (dinamico)
+                } else {
+                    mem.updateValue(arrayKey, val);
                 }
-                else if(ctx.INT() != null) {  // indice costante (es. a[2] <- 5)
-                    mem.updateValue(id + "_" + ctx.INT().getText(), val);
-                }
-                else if(ctx.ID(1) == null && ctx.INT() == null){ // assegnazione array intero (es. a[] <- {1, 2, 3}
-                    if(!mem.contains(id + "_" + ctx.exp().indexOf(ex))) {
-                        mem.add(id + "_" + ctx.exp().indexOf(ex), val);
-                    }
-                    else {
-                        mem.updateValue(id + "_" + ctx.exp().indexOf(ex), val);
-                    }
-                }
+                i++;
             }
         }
 
@@ -134,7 +140,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
     @Override
     public ComValue visitAssignOp(PseudoCodeParser.AssignOpContext ctx) {
-        // Requisito Avanzato 1: += e -=
+        // Avanzato 1: +=, -=
         String id = ctx.ID().getText();
         NumValue<?> currentVal = (NumValue<?>) mem.getValue(id);
         NumValue<?> rightVal = visitNumExp(ctx.exp());
@@ -154,7 +160,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
     @Override
     public ComValue visitIncDec(PseudoCodeParser.IncDecContext ctx) {
-        // Requisito Avanzato 1: ++ e --
+        // Avanzato 1: ++, --
         String id = ctx.ID().getText();
         NumValue<?> currentVal = (NumValue<?>) mem.getValue(id);
 
@@ -267,7 +273,6 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
         double leftVal = unwrapToDouble(left);
         double rightVal = unwrapToDouble(right);
 
-        // Requisito Obbligatorio: Gestione programmatica degli errori a runtime
         if ((ctx.op.getType() == PseudoCodeParser.DIV || ctx.op.getType() == PseudoCodeParser.MOD) && rightVal == 0) {
             throw new RuntimeException("Divisione per zero a tempo di esecuzione!");
         }
@@ -368,7 +373,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
     @Override
     public ExpValue<?> visitTernary(PseudoCodeParser.TernaryContext ctx) {
-        // Requisito Avanzato 1: Operatore Ternario (? :)
+        // Avanzato 1: Operatore Ternario
         boolean condition = visitBoolExp(ctx.exp(0)).toJavaValue();
         return condition ? visitExp(ctx.exp(1)) : visitExp(ctx.exp(2));
     }
@@ -431,7 +436,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
     @Override
     public ExpValue<?> visitArrayVal(PseudoCodeParser.ArrayValContext ctx) {
         String id = ctx.ID().getText();
-        String index = ctx.INT().getText();
+        int index = (int) visitNumExp(ctx.exp()).toJavaValue();
         String key = id + "_" + index;
 
         if (!mem.contains(key)) {
@@ -458,9 +463,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
     @Override
     public BoolValue visitBoolean(PseudoCodeParser.BooleanContext ctx) {
-        String prova = ctx.BOOL().getText();
-        String var = ctx.BOOL().getText().equals("T") ? "true" : "false";
-        return new BoolValue(Boolean.parseBoolean(var));
+        return new BoolValue(ctx.BOOL().getText().equals("T"));
     }
 
     @Override
@@ -473,7 +476,7 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\$\\{([^}]+)}");
         java.util.regex.Matcher matcher = pattern.matcher(str);
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
 
         while (matcher.find()) {
             String exprText = matcher.group(1);
@@ -484,15 +487,13 @@ public class PseudoCodeIntp extends PseudoCodeBaseVisitor<Value> {
 
             ExpValue<?> value = visitExp(parser.exp());
 
-            matcher.appendReplacement(result, value.toJavaValue().toString());
+            matcher.appendReplacement(result, value.toJavaValue().toString()); // result ha il testo normale e value viene sostituito a ${...}
         }
 
         matcher.appendTail(result);
 
         return new StringValue(result.toString());
     }
-
-
 
     @Override
     public CharValue visitChar(PseudoCodeParser.CharContext ctx) {

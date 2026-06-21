@@ -31,7 +31,7 @@ exp : num                                 # numeric
     | LPAR exp RPAR                       # parExp
     | exp QMARK exp COLON exp             # ternary     // Avanzato 1: operatore ternario (condizione ? expvero : expfalso)
     | READ TYPE                           # readExp     // Avanzato 2: input da tastiera
-    | ID '[' (INT) ']'                    # arrayVal    // Avanzato 3: array
+    | ID '[' exp ']'                    # arrayVal    // Avanzato 3: array
     ;
 
 num : INT # intNum
