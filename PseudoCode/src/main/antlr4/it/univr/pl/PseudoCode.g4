@@ -67,7 +67,7 @@ CASE   : 'case';
 // Struttura
 LPAR : '(' ; RPAR : ')' ; LBRACE : '{' ; RBRACE : '}' ; SEMICOLON : ';' ;
 
-// Tipi (5 richiesti) e Valori
+// Tipi e Valori
 TYPE   : 'int' | 'dec' | 'bool' | 'string' | 'char' ;
 BOOL   : 'T' | 'F' ;
 INT    : NAT | '-' POS ;

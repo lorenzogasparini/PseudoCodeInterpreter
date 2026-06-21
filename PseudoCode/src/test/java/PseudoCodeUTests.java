@@ -117,6 +117,33 @@ public class PseudoCodeUTests {
     }
 
     @Test
+    public void testTypeSystemBloccaIndiceVariabileErrato() {
+        // Test per verificare che il TypeSystem blocchi una variabile non intera usata come indice
+        String code = """
+                int a[] <- {10, 20, 30};
+                string s <- "ciao";
+                a[s] <- 99
+                """;
+
+        assertThrows(TypeMismatchException.class, () -> {
+            runCode(code);
+        });
+    }
+
+    @Test
+    public void testTypeSystemBloccaIndiceVariabileNonDichiarata() {
+        // Test per verificare che il TypeSystem si accorga se la variabile indice non esiste
+        String code = """
+                int a[] <- {10, 20, 30};
+                a[variabileInesistente] <- 99
+                """;
+
+        assertThrows(VarDeclarationException.class, () -> {
+            runCode(code);
+        });
+    }
+
+    @Test
     public void testInterpreteBloccaDivisionePerZero() {
         String code = """
                 int a <- 10;

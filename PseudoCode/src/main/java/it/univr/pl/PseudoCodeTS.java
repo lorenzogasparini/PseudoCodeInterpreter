@@ -33,6 +33,7 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
         return typeMap;
     }
 
+    // metodi helper
     private ComType visitCom(PseudoCodeParser.ComContext ctx) {
         return (ComType) visit(ctx);
     }
@@ -57,6 +58,7 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
         return typeA == typeB || typeA.isCompatible(typeB) || typeB.isCompatible(typeA);
     }
 
+    // prende il valore letterale scritto dopo il 'case' e lo converte in un valore: IntValue, StringValue...
     private ExpValue<?> getCaseValue(PseudoCodeParser.SwitchContext ctx, int index) {
         Token t = ctx.op.get(index);
         String text = t.getText();
@@ -64,7 +66,7 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
             case PseudoCodeParser.INT:
                 return new IntValue(Integer.parseInt(text));
             case PseudoCodeParser.STRING:
-                return new StringValue(StringEscapeUtils.unescapeJava(text.substring(1, text.length() - 1)));
+                return new StringValue(StringEscapeUtils.unescapeJava(text.substring(1, text.length() - 1))); // rimuove apici
             case PseudoCodeParser.BOOL:
                 return new BoolValue(Boolean.parseBoolean(text));
             case PseudoCodeParser.DEC:
@@ -128,6 +130,22 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
             throw new VarDeclarationException("Variable array " + id + " assigned but never declared.\n@" + ctx.start.getLine() + ":" + ctx.start.getCharPositionInLine());
         }
 
+        // controllo di sicurezza sull'indice
+        if(ctx.ID(1) != null){
+            String indexId = ctx.ID(1).getText();
+
+            // indice non dichiarato
+            if (!typeMap.containsKey(indexId)) {
+                throw new VarDeclarationException("Array index variable '" + indexId + "' not declared.\n@" + ctx.start.getLine());
+            }
+
+            // indice che non è un numero
+            if (!typeMap.get(indexId).isCompatible(SimpleType.INT)) {
+                throw new TypeMismatchException("Array index must be an integer.\n@" + ctx.start.getLine());
+            }
+        }
+
+        // controllo di validità dei valori assegnati
         for(PseudoCodeParser.ExpContext ex : ctx.exp()) {
             ExpType varType = typeMap.get(id);
             ExpType expType = (ExpType) visit(ex);
@@ -154,26 +172,30 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
         return ComType.INSTANCE;
     }
 
+    // per lo zucchero sintattico: += e -=
     @Override
     public ComType visitAssignOp(PseudoCodeParser.AssignOpContext ctx) {
         String id = ctx.ID().getText();
         if (!typeMap.containsKey(id)) {
             throw new VarDeclarationException("Variable " + id + " assigned but never declared.\n@" + ctx.start.getLine());
         }
+
         ExpType varType = typeMap.get(id);
         if (!varType.isCompatible(SimpleType.INT) && !varType.isCompatible(SimpleType.DEC)) {
             throw new TypeMismatchException("Numeric variable expected for += or -=.\n@" + ctx.start.getLine());
         }
-        visitNumExp(ctx.exp());
+        visitNumExp(ctx.exp()); // verifica che anche l'espressione a destra sia un numero
         return ComType.INSTANCE;
     }
 
+    // per lo zucchero sintattico: ++ e --
     @Override
     public ComType visitIncDec(PseudoCodeParser.IncDecContext ctx) {
         String id = ctx.ID().getText();
         if (!typeMap.containsKey(id)) {
             throw new VarDeclarationException("Variable " + id + " assigned but never declared.\n@" + ctx.start.getLine());
         }
+
         ExpType varType = typeMap.get(id);
         if (!varType.isCompatible(SimpleType.INT) && !varType.isCompatible(SimpleType.DEC)) {
             throw new TypeMismatchException("Numeric variable expected for ++ or --.\n@" + ctx.start.getLine());
@@ -198,18 +220,18 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
     @Override
     public ComType visitSwitch(PseudoCodeParser.SwitchContext ctx) {
         int i = 0;
-        List<ExpValue<?>> caseNodeList = new ArrayList<>();
+        List<ExpValue<?>> caseNodeList = new ArrayList<>(); // per mantenere i case già presenti
+        ExpType expType = (ExpType) visit(ctx.exp());
 
         for(TerminalNode caseNode : ctx.CASE()) {
             if(!caseNodeList.contains(getCaseValue(ctx, i))){
                 // 'caseNode' rappresenta il token "case"
                 ExpValue<?> caseValue = getCaseValue(ctx, i);
                 caseNodeList.add(caseValue);
+                ExpType caseType = TypeUtils.fromValue(caseValue);
 
-                ExpType expType = (ExpType) visit(ctx.exp());
-                ExpType caseval = TypeUtils.fromValue(caseValue);
-
-                if(expType.isCompatible(caseval)){
+                // verifica che l'espressione dello switch sia compatibile con il singolo case
+                if(expType.isCompatible(caseType)){
                     PseudoCodeTS typeSystemSwitch = new PseudoCodeTS(typeMap);
                     typeSystemSwitch.visitCom(ctx.com(i));
                 } else{
@@ -221,6 +243,7 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
             }
             i++;
         }
+
         if(ctx.DEFAULT() != null) {
             int defaultIndex = ctx.com().size()-1;
             if (defaultIndex >= 0 && ctx.com(defaultIndex) != null) {
@@ -390,11 +413,11 @@ public class PseudoCodeTS extends PseudoCodeBaseVisitor<Type> {
         String str = raw.substring(1, raw.length() - 1);
         str = org.apache.commons.text.StringEscapeUtils.unescapeJava(str);
 
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\$\\{([^}]+)}");
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\$\\{([^}]+)}"); // tra () creiamo un gruppo di cattura
         java.util.regex.Matcher matcher = pattern.matcher(str);
 
         while (matcher.find()) {
-            String exprText = matcher.group(1);
+            String exprText = matcher.group(1); // prendi ciò che c'è tra le () della regex
 
             // parser per analizzare l'espressione
             CharStream cs = CharStreams.fromString(exprText);
