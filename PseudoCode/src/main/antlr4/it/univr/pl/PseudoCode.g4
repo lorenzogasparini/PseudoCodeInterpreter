@@ -3,13 +3,13 @@ grammar PseudoCode;
 main : com EOF ;
 
 com : TYPE ID (ASSIGN exp)?                                          # decl
-    | TYPE ID '[' ']' (ASSIGN LBRACE (exp (',' exp)*) RBRACE)?       # declArray
-    | ID (('[' ']' ASSIGN LBRACE (exp (',' exp)*) RBRACE) | ('[' (INT | ID) ']' ASSIGN exp))          # assignArray
+    | TYPE ID '[' ']' (ASSIGN LBRACE (exp (',' exp)*) RBRACE)?       # declArray // Avanzato 3: array
+    | ID (('[' ']' ASSIGN LBRACE (exp (',' exp)*) RBRACE) | ('[' (INT | ID) ']' ASSIGN exp))          # assignArray // Avanzato 3: array
     | ID ASSIGN exp                                                  # assign
     | ID op=(PLUS_ASSIGN | MINUS_ASSIGN) exp                         # assignOp  // Avanzato 1: zucchero sintattico
     | ID op=(INC | DEC_OP)                                           # incDec    // Avanzato 1: zucchero sintattico
     | IF LPAR exp RPAR THEN LBRACE com RBRACE (ELSE LBRACE com RBRACE)? # ifElse
-    | SWITCH LPAR (exp) RPAR LBRACE (CASE op+=(INT | DEC | BOOL | STRING | CHAR) ':' LBRACE com RBRACE)* (DEFAULT ':' LBRACE com RBRACE)? RBRACE  # switch
+    | SWITCH LPAR (exp) RPAR LBRACE (CASE op+=(INT | DEC | BOOL | STRING | CHAR) ':' LBRACE com RBRACE)* (DEFAULT ':' LBRACE com RBRACE)? RBRACE  # switch // Avanzato 4: switch
     | REPEAT WHILE LPAR exp RPAR LBRACE com RBRACE                   # while
     | com (NONDET com)+                                              # nonDet // Avanzato 2: non determinismo
     | com SEMICOLON com                                              # seq
@@ -24,14 +24,14 @@ exp : num                                 # numeric
     | <assoc=right> exp POW exp           # pow
     | exp op=(MUL | DIV | MOD) exp        # mulDivMod
     | exp op=(ADD | SUB) exp              # addSub
+    | NOT exp                             # not
     | exp op=(LT | LEQ | GEQ | GT) exp    # cmpExp
     | exp op=(EQQ | NEQ) exp              # eqExp
     | exp op=(AND | OR) exp               # andOr
-    | NOT exp                             # not
     | LPAR exp RPAR                       # parExp
     | exp QMARK exp COLON exp             # ternary     // Avanzato 1: operatore ternario (condizione ? expvero : expfalso)
     | READ TYPE                           # readExp     // Avanzato 2: input da tastiera
-    | ID '[' (INT) ']'                    # arrayVal
+    | ID '[' (INT) ']'                    # arrayVal    // Avanzato 3: array
     ;
 
 num : INT # intNum
