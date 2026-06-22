@@ -6,7 +6,7 @@
   </p>
 </div>
 
-> _PsuedoCodeInterpreter_ è un linguaggio general purpose che mira a realizzare dal punto di vista della computazione quanto generalmente inteso come pseudocodice.
+> _PseudoCodeInterpreter_ è un linguaggio general purpose che mira a realizzare dal punto di vista della computazione quanto generalmente inteso come pseudocodice.
 
 ## Indice
 
@@ -139,30 +139,9 @@ otterremo i risultati:
 > Type checking superato con successo!
 >
 
-#### Test gestione errore dato da operazione su variabili di tipo diverso
-Dato il programma di esempio che ben rappresenta la _gestione errore dato da operazione su variabili di tipo diverso_
-```
-public void testTipiDiversi() {
-String code = """
-char c <- 'x';
-string s <- "ciao\\nmondo";
-bool t <- T;
-bool f <- NOT t OR (5 > 10)
-```
-otterremo i risultati:
->
-> line 1:15 no viable alternative at input 'publicvoid'
->
-> line 2:20 token recognition error at: '= '
->
-> line 2:24 token recognition error at: '"\n'
->
-> { }
->
-> Type checking superato con successo!
 
-#### Test gestione errore dato da operazione su variabili di tipo diverso
-Dato il programma di esempio che ben rappresenta la _gestione errore dato da operazione su variabili di tipo diverso_
+#### Test stringhe ed espressioni logiche
+Dato il programma di esempio che rappresenta l'assegnamento e l'utilizzo di caratteri, stringhe ed espressioni booleane:
 ```
 char c <- 'x';
 string s <- "ciao\\nmondo";
@@ -191,8 +170,8 @@ otterremo i risultati:
 > @2:16
 >
 
-#### Test gestione errore di tipo da parte del type system
-Dato il programma di esempio che ben rappresenta la _gestione errore di tipo da parte del type system_
+#### Test gestione errore di divisione per zero a runtime
+Il seguente programma di esempio, rappresenta la _gestione di dela divisione per 0_:
 ```
 int a <- 10;
 int b <- 0;
@@ -305,22 +284,6 @@ otterremo i risultati:
 > Type checking superato con successo!
 >
 
-#### Test costrutto utilizzo SwitchCase
-Dato il programma di esempio che ben rappresenta l'utilizzo del costrutto _SwitchCase_ per la quale dobbiamo ottenere un errore dato da tipo erroneo per l'espressione di riferimento per la selezione:
-```
-int y[] <- {81,20};
-int x <- 0;
-int z <- 0;
-if(z == 0) then {
-    x <- y[1]*3
-}
-```
-otterremo i risultati:
->
-> { x[int]:60 y_1[int]:20 z[int]:0 y_0[int]:81 }
->
-> Type checking superato con successo!
->
 
 ## 3. Sintassi
 La sintassi dell'interprete _PseudoCodeInterpreter_ è definita attraverso una grammatica di tipo CF, nella particolare notazione **Extended Backus–Naur Form** (_**EBNF**_), implementata attraverso il file ANTLR4 `PseudoCode.g4`, si fornisce nel seguito una rappresentazione formale della stessa:
@@ -351,7 +314,7 @@ $$
 & \mid \text{'('} \ \langle exp \rangle \ \text{')'} \\
 & \mid \langle exp \rangle \ \text{'?'} \ \langle exp \rangle \ \text{':'} \ \langle exp \rangle \\
 & \mid \text{'read'} \ \langle type \rangle \\
-& \mid \text{ID} \ \text{'['} \ \text{INT} \ \text{']'} \\[1.5ex]
+& \mid \text{ID} \ \text{'['} \ \text{ $\langle exp \rangle$} \ \text{']'} \\[1.5ex]
 %
 \langle num \rangle \rightarrow & \ \text{INT} \mid \text{DEC} \\[1.5ex]
 %
@@ -364,11 +327,11 @@ L'insieme dei simboli terminali è ben rappresentato da:
 |---------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
 | **Simboli terminali specificatori di Tipo (<_type_>)** (Keywords)         | Identificano i tipi di dato primitivi utilizzabili per le dichiarazioni di variabili o per le operazioni di lettura. | `int`, `dec`, `bool`, `string`, `char`                                                       |
 | **Simboli terminali specificatori di strutture di Controllo condizionali** | Regolano il flusso di esecuzione del programma in base a verifiche booleane o costrutti di selezione multipla.       | `if`, `then`, `else`, `switch`, `case`, `default`                                            |
-| **Simboli terminali specificatori di strutture dii terazione**            | Definiscono i cicli per la ripetizione di blocchi di comandi.                                                        | `repeat`, `while`                                                                            |
+| **Simboli terminali specificatori di strutture di iterazione**            | Definiscono i cicli per la ripetizione di blocchi di comandi.                                                        | `repeat`, `while`                                                                            |
 | **Simboli terminali specificatori di operatori logici testuali**          | Utilizzati all'interno delle espressioni (<exp>) per l'algebra booleana e le operazioni aritmetiche testuali.        | `AND`, `OR`, `NOT`, `mod`                                                                    |
 | **Simboli terminali specificatori di comandi di Input/Output**            | Identificano le operazioni native per l'interazione con l'esterno (lettura e scrittura dati).                        | `read`, `disp`                                                                               |
-| **Simboli terminali specificatori di simboli operatore e di assegnmento** |                                                                                                                      | `<-`, `+=`, `-=`, `++`, `--`, `^`, `*`, `/`, `+`, `-`, `<`, `<=`, `>=`, `>`, `==`, `!=`, `?` |
-| **Simboli terminali specificatori di delimitatori e punteggiatura**       |                                                                                                                      | `[`, `]`, `{`, `}`, `(`, `)`, `,`, `:`, `;`, `@`                                             |                                      |
+| **Simboli terminali specificatori di simboli operatore e di assegnamento** | Identificano i token degli operatori aritmetici/booleani e dell'assegnamento                                                                                                                     | `<-`, `+=`, `-=`, `++`, `--`, `^`, `*`, `/`, `+`, `-`, `<`, `<=`, `>=`, `>`, `==`, `!=`, `?` |
+| **Simboli terminali specificatori di delimitatori e punteggiatura** | Identificano i simboli strutturali per la scomposizione dei blocchi e delle sequenze.                                | `[`, `]`, `{`, `}`, `(`, `)`, `,`, `:`, `;`, `@`                                             |
 
 La categoria sintattica dei **comandi** è ben rappresentata da _$\langle$com$\rangle$_ nella grammatica ANTLR4, che rappresenta inoltre il simbolo iniziale della grammatica. La categoria sintattica delle **espressioni** è ben caratterizzata in termini semantici dai tipi definiti esplicitamente attraverso il concetto di `Type` (definito nell' opportuno package _type_) e implementati attaverso la interfaccia con i semplici _valori_ nella rappresentazione data dalla macchina astratta di livello inferiore nella gerarchia delle macchine astratte (nel nostro caso è la macchina ospitante l'esecuzione ovvero il linguaggio Java).
 
@@ -416,14 +379,12 @@ Da notare che la gestione in memoria degli array è di tipo dinamico (di **dimen
 ### 3.4 Assegnamenti
 
 ```
-x = 42;       // assegnamento a variabile di tipo int
-x += 5;       // equivalente a x = x + 5
-x -= 2;       // equivalente a x = x - 2
-x *= 3;       // equivalente a x = x * 3
-x /= 4;       // equivalente a x = x / 4
+x <- 42;       // assegnamento a variabile di tipo int
+x += 5;       // equivalente a x <- x + 5
+x -= 2;       // equivalente a x <- x - 2
 x++;          // post-incremento, incremento unitario dopo la valutazione
 x--;          // post-decremento, decremento unitario dopo la valutazione
-x <- {1,2,3};  // assegnamento ad array di variabili di tipo int già dichiarato
+x[] <- {1,2,3};  // assegnamento ad array di variabili di tipo int già dichiarato
 x[0] <- 1     // assegnamento ad elemento di un array di variabili di tipo int già dichiarato
 ```
 
@@ -438,13 +399,13 @@ Le espressioni supportano la **precedenza standard** degli operatori (dal più b
 | 2       | `OR`, `AND` (or, and logici)                                                    |
 | 3       | `==`, `!=`, `<`, `>`, `<=`, `>=` (comparatori)                                  |
 | 4       | `+`, `-` (somma, sottrazione)                                                   |
-| 5       | `*`, `/`, `mod`, `pow` (moltiplicazione, divisione, modulo, elevamento a potenza) |
-| 6       | `!=` (negazione logica dell'uguaglianza)                |
+| 5       | `*`, `/`, `mod`, `^` (moltiplicazione, divisione, modulo, elevamento a potenza) |
+| 6       | `NOT` (negazione logica unitaria)                |
 | 7       | Accesso array `arr[i]`                                                          |
 
 **Operatore ternario:**
 ```
-String msg = (guardia > 1) ? "ok" : "test";
+string msg <- (guardia > 1) ? "ok" : "test";
 ```
 La variabile `msg` viene assegnata con la stringa *"ok"* se la variabile `guardia` è maggiore di 1. Viene assegnato con la stringa *"test"* altrimenti.
 
@@ -474,13 +435,13 @@ switch(y){
 
 **Ciclo while:**
 ```
-int i = 0;
+int counter <- 0;
 repeat while (counter < 5) {
     counter++
 }
 ```
 
-Il ciclo `repeat while (counter < 5)` itera `counter` da `0` a `4` inclusi, i valori su cui iterare possono essere solo numeri interi non negativi.
+Il ciclo `repeat while (counter < 5)` itera `counter` da `0` a `4` inclusi.
 
 ### 3.7 Stampa e interpolazione nelle stringhe
 ```
@@ -541,9 +502,7 @@ PseudoCode adotta **tipizzazione statica**: ogni variabile deve essere dichiarat
 | Assegnamento di tipo errato   | *"Variable x cannot be assigned with type."*, dove **x** è la variabile di riferimento e type è il tipo erroneo. |
 
 ### 4.2 Visibilità e scoping
-PseudoCode adotta lo **scoping lessicale** senza **shadowing**. Ogni blocco `{ ... }` introduce un nuovo ambiente ma non è possibile dichiarare in esso variaibili globali già definite. In tale situazioe si ottiene un errore di tipo `Variable x already declared`.
-
-Gli identificatori a locazione di memoria (fortemente tipati), dichiarati in qualsiasi punto del codice, risiedono nella memoria globale (rappresentata dalla struttura dati predisposta nella classe _Mem_) del programma e sono visibili da qualsiasi punto del programma.
+PseudoCode adotta lo **scoping lessicale** senza **shadowing**. Ogni blocco `{ ... }` introduce un nuovo ambiente ma non è possibile dichiarare in esso variabili globali già definite. In tale situazione si ottiene un errore di tipo `Variable x already declared`.
 
 ### 4.3 Valutazione delle espressioni
 Le espressioni sono valutate in modo standard: tutti gli operandi vengono valutati prima dell'applicazione dell'operatore. Gli operatori logici `AND` e `OR` **non** adottano la semantica short-circuit.
@@ -560,7 +519,7 @@ num
 Da notare la possibilità di effettuare bilateralmente il casting tra variabili appartenenti al _macro-tipo numerico_ (inteso come tale solamente ad un primo livello sintattico), dunque attraverso la funzione `castValue` definita nella opportuna classe `TypeUtils` sarà possibile considerare, in termini semantici, una variabile di tipo `int` come una variabile di tipo `dec` e viceversa.
 
 ### 4.5 Gestione degli errori a runtime
-Gli errori a tempo d'esecuzione vengono intercettati dall'`interprete` e dal `type system` e riportati con messaggi esplicativi (implementati a livello di macchina astratta di livello inferiore nella gerarchia delle macchine astratte, attraverso il concetto di **eccezione**), **terminando** il programma (??? OPPURE **senza terminare** bruscamente il programma ???). Gli errori gestiti includono:
+Gli errori a tempo d'esecuzione vengono intercettati dall'`interprete` e dal `type system` e riportati con messaggi esplicativi (implementati a livello di macchina astratta di livello inferiore nella gerarchia delle macchine astratte, attraverso il concetto di **eccezione**), **terminando** il programma. Gli errori gestiti includono:
 
 | Errore                                                                                                  | Messaggio                                                                                                                                                                                                                                                                                                                                 |
 |---------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -576,81 +535,123 @@ Gli errori a tempo d'esecuzione vengono intercettati dall'`interprete` e dal `ty
 ### Introduzione
 Date le scelte progettuali effettuate per la implementazione del linguaggio e del relativo interprete (_PseudoCodeInterpreter_) e
 data la definizione di linguaggio di programmazione che rappresenta un sistema formale in grado di modellare il concetto
-di _Turing-calcolabilità_, per prima cosa sono stati introdotti i costrutti _struttre di assegnamento_, _strutture condizionali_ e _strutture iterative_,
-ottenendo dunque un linugaggio che ha caratteristiche di **Turing-completezza**.
+di _Turing-calcolabilità_, per prima cosa sono stati introdotti i costrutti _strutture di assegnamento_, _strutture condizionali_ e _strutture iterative_,
+ottenendo dunque un linguaggio che ha caratteristiche di **Turing-completezza**.
 
 Nella nostra trattazione, l'interprete _PseudoCodeIntp_ descritto nel seguito, è atto ad interpretare un semplice
 linguaggio imperativo didattico che mira alla formalizzazione dello _pseudocodice_ opportunamente alle scelte implementative descritte precedentemente.
 
 > Dato un codice di esempio:
-> $$\texttt{$i = 0$; while($i < 9$) $\{ i = i + 1 \}$}$$
+> $$\texttt{$i <- 0$; repeat while($i < 9$) $\{ i <- i + 1 \}$}$$
 > i programmi trasformano dunque la memoria in maniera intuitivamente legata a quanto descritto:
 >
-> $$[i \mapsto 3] \overset{[\![ \textit{PseudoCodeIntp} ]\!] (i = 0;\texttt{while}(i < 9)\{i = i+1 \})}{\xrightarrow{\hspace{5cm}}} [i \mapsto 9]$$
+> $$[i \mapsto 3] \overset{[\![ \textit{PseudoCodeIntp} ]\!] (i <- 0;\texttt{repeat while}(i < 9)\{i <- i+1 \})}{\xrightarrow{\hspace{5cm}}} [i \mapsto 9]$$
 >
 > Analizziamo formalmente come è descritto la trasformazione della memoria attraverso i sistemi di transizione associati
 > al sistema formale predisposto dal linguaggio da noi progettato.
 
-###  Definizione di semantica attraverso _sistemi di transizione_:
-Il nostro linguaggio è classificabile come **_staticamente tipizzato_**, ciò è stato attuato attraverso un sistema di
-tipi per veriﬁcare  la conformità dei tipi in fase di  compilazione:
-Deﬁniremo un elenco di tipi della forma $\texttt{string } x, \cdots; \texttt{dec } y;$; atto alla
-dichiarazione delle variabili tipate. Le variabili hanno  dichiarazioni di tipo singole. Avremo inoltre bisogno di un
-sistema di tipi (type system) per il linguaggio, attraverso  il quale attuare inferenza dei tipi per ciascun elemento
-dell'albero  di analisi, veriﬁca della conformità dei tipi con  le dichiarazioni delle variabili e la  semantica dei comandi e che funzioni in fase di compilazione (cioè prima di tentare
-l'esecuzione di un programma).
+### Definizione di semantica attraverso sistemi di transizione
 
-Un **type system** è un processo di inferenza che cerca di assegnare tipi alle strutture del programma. Se a un programma
-può essere assegnato un tipo (valido), esso è ben tipizzato. Nei casi più semplici, si tratta di una procedura decisionale.
-Nella nostra trattazione adotteremo un approccio più pratico, per cui implementiamo il  sistema dei tipi come interprete
-del linguaggio, in questo interprete, il calcolo viene effettuato sui tipi anziché sui valori.
+Il nostro linguaggio adotta un approccio basato sulla **semantica operazionale a piccoli passi (Small-Step Operational Semantics)**. Per descrivere esaustivamente il comportamento del linguaggio, separiamo rigorosamente la **Semantica Statica** (eseguita dal *Type System* in fase di analisi) dalla **Semantica Dinamica** (eseguita dall'*Interprete* a tempo di esecuzione).
 
-Il tipo di espressione viene utilizzato per veriﬁcare la conformità dei comandi al tipo: non viene eseguita alcuna
-conversione di tipo. Analizziamo ora la semantica della componente di interprete di tipi appena introdotta: Introucendola opportunamente come
+---
+
+#### 1. Semantica Statica (Type System)
+Il linguaggio è **staticamente tipizzato**. Il sistema dei tipi è formalizzato come un interprete algoritmico in cui il calcolo viene effettuato sulla gerarchia dei tipi anziché sui valori. Definiamo l'**ambiente dei tipi** come:
 $$
-\Gamma \in \mathcal{X}\to \mathcal{T}
+\Gamma \in \mathcal{X} \to \mathcal{T}
 $$
-si associano le variabili ai tipi. I tipi sono quelli  deﬁniti nel linguaggio: $\texttt{int, dec, bool, string, char}$:
+che associa a ciascuna variabile identificata un tipo primitivo $\tau \in \{\texttt{int, dec, bool, string, char}\}$. La configurazione ha la forma $\langle \Gamma, c \rangle$ e la transizione di un comando si estingue quando raggiunge la configurazione vuota $\epsilon$ (corrispondente a `ComType.INSTANCE`).
+
+**Dichiarazione e Assegnamento:**
 $$
-\textbf{Decl}\ \frac{\text{--}}{\langle \Gamma, \tau x \rangle \to \langle \Gamma[{}^{\tau}/x],\epsilon \rangle}\ \Gamma(x)\text{ undefined}
-$$
-$$
-\textbf{Assign}\ \frac{\langle \Gamma,\texttt{exp}\to \texttt{exp'} \rangle}{\langle \Gamma,\texttt{x = exp} \rangle \to \langle \Gamma, \texttt{x = exp'} \rangle} \qquad \textbf{AssignOp}\ \frac{\text{--}}{\langle \Gamma, x = \tau \rangle \to \langle \Gamma, \epsilon \rangle}\ \tau = \Gamma(x)
-$$
-in ottica di **_costrutti condizionali_**:
-$$
-\textbf{If}\ \frac{\langle \Gamma ,\texttt{exp} \rangle \to \texttt{exp'}}{\langle \Gamma, \texttt{if (exp) { com }} \rangle \to \langle \Gamma, \texttt{if (exp') { com }} \rangle}
+\textbf{TS-Decl}\ \frac{\text{--}}{\langle \Gamma, \tau x \rangle \to \langle \Gamma[{}^{\tau}/x], \epsilon \rangle}\ \Gamma(x)\text{ undefined}
 $$
 $$
-\textbf{IfElse}\ \frac{\text{--}}{\langle \Gamma,\texttt{if ($\tau$) { com }} \rangle \to \langle \Gamma, \texttt{com} \rangle} \ \tau = \texttt{bool}
-$$
-A riguardo del costrutto di selezione multipla _switch_ possiamo affermare che data la sintassi astratta del costrutto:
-$$
-\texttt{switch } e \texttt{ \{case } v_1: c_1; \dots; \texttt{case } v_n: c_n; \texttt{default}: c_d \texttt{\}}
-$$
-dove $\Gamma$ rappresenta la **memoria**, $e$ è l'**espressione** da valutare, $v_i$ i **valori costanti** dei case letterali (interi, stringhe, booleani, ecc.), $c_i$ i **comandi associati a ciascun case**, $c_d$ è il **comando opzionale** del ramo **default**. La semantica dinamica associata è definita nel seguito. Esattamente come nella regola semantica del costrutto _If_, finché l'espressione di controllo non è ridotta a un valore terminale $v$, lo switch deve far progredire la valutazione di $e$:
-$$
-\textbf{Switch}\ \frac{\langle \Gamma , e \rangle \to e'}{\langle \Gamma, \texttt{switch } e \texttt{ \{ $\cdots$ \}} \rangle \to \langle \Gamma, \texttt{switch } e' \texttt{ \{ $\cdots$ \}} \rangle}
+\textbf{TS-Assign}\ \frac{\langle \Gamma, e \rangle \to e'}{\langle \Gamma, x = e \rangle \to \langle \Gamma, x = e' \rangle} \qquad \textbf{TS-AssignValid}\ \frac{\text{--}}{\langle \Gamma, x = \tau \rangle \to \langle \Gamma, \epsilon \rangle}\ \tau = \Gamma(x)
 $$
 
-A questo punto, cosa succede se $\texttt{exp}$ non restituisce un valore di tipo booleano? L'interprete genera un errore,
-ae indicare che la tipizzazione non è riuscita.
+**Costrutti Condizionali e di Selezione:**
+$$
+\textbf{TS-If}\ \frac{\langle \Gamma, e \rangle \to e'}{\langle \Gamma, \texttt{if } e \texttt{ \{ } c \texttt{ \}} \rangle \to \langle \Gamma, \texttt{if } e' \texttt{ \{ } c \texttt{ \}} \rangle}
+$$
+$$
+\textbf{TS-IfValid}\ \frac{\text{--}}{\langle \Gamma, \texttt{if (bool) \{ } c \texttt{ \}} \rangle \to \langle \Gamma, c \rangle}
+$$
+$$
+\textbf{TS-Switch}\ \frac{\langle \Gamma, e \rangle \to e'}{\langle \Gamma, \texttt{switch } e \texttt{ \{ } \dots \texttt{ \}} \rangle \to \langle \Gamma, \texttt{switch } e' \texttt{ \{ } \dots \texttt{ \}} \rangle}
+$$
+Una volta che l'espressione dello `switch` si riduce al suo tipo terminale, il sistema verifica staticamente che ogni valore $v_i$ dei singoli `case` sia compatibile con il tipo derivato da $e$, validandone i rispettivi blocchi di comandi. Se la condizione dell'`if` o del `while` non si riduce a un tipo compatibile con `bool`, il sistema solleva staticamente una `TypeMismatchException`.
 
-Analizziamo ora il costrutto iterativo **repeat while**. Esso è descritto in termini di semantica astratta come:
+**Costrutto Iterativo e Sequenze:**
 $$
-\texttt{repeat while (} e \texttt{) \{ } c \texttt{ \}}
+\textbf{TS-While}\ \frac{\langle \Gamma, e \rangle \to e'}{\langle \Gamma, \texttt{repeat while } e \texttt{ \{ } c \texttt{ \}} \rangle \to \langle \Gamma, \texttt{repeat while } e' \texttt{ \{ } c \texttt{ \}} \rangle}
 $$
-da cui deduciamo la definizione in semantica dinamica:
 $$
-\frac{\langle \Gamma , e \rangle \to e'}{\langle \Gamma, \texttt{repeat while (} e \texttt{) \{ } c \texttt{ \}} \rangle \to \langle \Gamma, \texttt{repeat while (} e' \texttt{) \{ } c \texttt{ \}} \rangle}
+\textbf{TS-WhileValid}\ \frac{\text{--}}{\langle \Gamma, \texttt{repeat while (bool) \{ } c \texttt{ \}} \rangle \to \langle \Gamma, c \rangle}
 $$
-dove $\Gamma$ rappresenta ancora una volta lo stato della memoria attuale, $e$ rappresenta l'**espressione** di controllo ($\texttt{exp}$), $c$ il blocco di **comandi** interno al ciclo ($\texttt{com}$), e dove notiamo che il ciclo valuta prima di tutto la condizione $e$ : se è falsa l'esecuzione termina immediatamente senza variazioni, se è vera esegue il corpo dei comandi $c$ in un nuovo scope e poi richiama ricorsivamente se stesso.
+$$
+\textbf{TS-Seq}\ \frac{\langle \Gamma, c_1 \rangle \to \langle \Gamma', c_1' \rangle}{\langle \Gamma, c_1 ; c_2 \rangle \to \langle \Gamma', c_1' ; c_2 \rangle} \qquad \textbf{TS-SeqE}\ \frac{\text{--}}{\langle \Gamma, \epsilon ; c_2 \rangle \to \langle \Gamma, c_2 \rangle}
+$$
+La validazione statica si conclude con successo quando l'intera sequenza di comandi dell'albero sintattico si riduce alla configurazione vuota $\langle \Gamma,\epsilon \rangle$.
 
-Infine, analizziamo l'evoluzione della semantica delle **sequenze di comandi**:
+---
+
+#### 2. Semantica Dinamica (Interprete)
+La semantica dinamica descrive la computazione effettiva sui valori a runtime. Definiamo lo **stato della memoria** (corrispondente alla classe `Mem`) come una funzione parziale:
 $$
-\textbf{Seq}\ \frac{\langle \Gamma , \texttt{com}_1 \rangle \to \langle \Gamma', \texttt{com}_1' \rangle}{\langle \Gamma , \texttt{com}_1 ; \texttt{com}_2 \rangle \to \langle \Gamma', \texttt{com}_1' ; \texttt{com}_2 \rangle} \qquad \qquad \textbf{SeqE}\ \frac{\text{--}}{\langle \Gamma, \epsilon ; \texttt{com}_2 \rangle \to \langle \Gamma , \texttt{com}_2 \rangle}
+\sigma \in \mathcal{X} \to \mathcal{V}
 $$
-La valutazione si interrompe quando $\texttt{com}$ restituisce una configurazione vuota $\langle \Gamma,\epsilon \rangle$, ciò significa che il programma è ben tipizzato.
+che mappa ogni identificatore a un valore terminale concreto $v$ (es. `IntValue`, `BoolValue`, `StringValue`). La configurazione ha la forma $\langle \sigma, c \rangle$ e si riduce aggiornando lo stato fino al comando vuoto $\epsilon$ (corrispondente a `ComValue.INSTANCE`).
+
+**Dichiarazione e Assegnamento:**
+$$
+\textbf{INT-Decl}\ \frac{\text{--}}{\langle \sigma, \tau x \rangle \to \langle \sigma[x \mapsto \text{null}], \epsilon \rangle}
+$$
+$$
+\textbf{INT-Assign}\ \frac{\langle \sigma, e \rangle \to e'}{\langle \sigma, x = e \rangle \to \langle \sigma, x = e' \rangle} \qquad \textbf{INT-AssignFinal}\ \frac{\text{--}}{\langle \sigma, x = v \rangle \to \langle \sigma[x \mapsto v], \epsilon \rangle}
+$$
+
+**Costrutti Condizionali (If ed Else):**
+Se l'espressione condizionale si riduce a un valore booleano terminale, l'interprete valuta dinamicamente quale ramo eseguire, introducendo un ambiente isolato $\sigma'$ (scoping a blocchi) che sincronizzerà solo le variabili preesistenti mediante la funzione `updateValues` al termine dell'esecuzione del blocco:
+$$
+\textbf{INT-If}\ \frac{\langle \sigma, e \rangle \to e'}{\langle \sigma, \texttt{if } e \texttt{ then \{ } c_1 \texttt{ \} else \{ } c_2 \texttt{ \}} \rangle \to \langle \sigma, \texttt{if } e' \texttt{ then \{ } c_1 \texttt{ \} else \{ } c_2 \texttt{ \}} \rangle}
+$$
+$$
+\textbf{INT-IfTrue}\ \frac{\text{--}}{\langle \sigma, \texttt{if (T) then \{ } c_1 \texttt{ \} else \{ } c_2 \texttt{ \}} \rangle \to \langle \sigma', c_1 \rangle}
+$$
+$$
+\textbf{INT-IfFalse}\ \frac{\text{--}}{\langle \sigma, \texttt{if (F) then \{ } c_1 \texttt{ \} else \{ } c_2 \texttt{ \}} \rangle \to \langle \sigma', c_2 \rangle}
+$$
+
+**Selezione Multipla (Switch):**
+L'interprete valuta l'espressione di controllo $e$ e analizza sequenzialmente i `case` senza fall-through. Se riscontra una corrispondenza di valore ($v == v_i$), esegue il comando $c_i$ associato in un ambiente isolato e interrompe il costrutto, altrimenti devia sul ramo `default`:
+$$
+\textbf{INT-Switch}\ \frac{\langle \sigma, e \rangle \to e'}{\langle \sigma, \texttt{switch } e \texttt{ \{ } \dots \texttt{ \}} \rangle \to \langle \sigma, \texttt{switch } e' \texttt{ \{ } \dots \texttt{ \}} \rangle}
+$$
+$$
+\textbf{INT-SwitchMatch}\ \frac{\text{--}}{\langle \sigma, \texttt{switch } v \texttt{ \{ \dots case } v_i : c_i \dots \texttt{\}} \rangle \to \langle \sigma', c_i \rangle}\ v == v_i
+$$
+
+**Costrutto Iterativo (Repeat While):**
+Il ciclo valuta prima di tutto la condizione $e$ a runtime. Se è falsa ($\texttt{F}$), l'esecuzione del costrutto termina immediatamente senza variazioni ($\epsilon$); se è vera ($\texttt{T}$), esegue il corpo dei comandi $c$ in un ambiente figlio isolato, applica le modifiche alla memoria padre e poi riesegue ricorsivamente se stesso:
+$$
+\textbf{INT-While}\ \frac{\langle \sigma, e \rangle \to e'}{\langle \sigma, \texttt{repeat while (} e \texttt{) \{ } c \texttt{ \}} \rangle \to \langle \sigma, \texttt{repeat while (} e' \texttt{) \{ } c \texttt{ \}} \rangle}
+$$
+$$
+\textbf{INT-WhileTrue}\ \frac{\text{--}}{\langle \sigma, \texttt{repeat while (T) \{ } c \texttt{ \}} \rangle \to \langle \sigma', c ; \texttt{repeat while (T) \{ } c \texttt{ \}} \rangle}
+$$
+$$
+\textbf{INT-WhileFalse}\ \frac{\text{--}}{\langle \sigma, \texttt{repeat while (F) \{ } c \texttt{ \}} \rangle \to \langle \sigma, \epsilon \rangle}
+$$
+
+**Sequenze di comandi:**
+L'evoluzione delle sequenze di comandi a runtime segue l'avanzamento dello stato di memoria $\sigma$ passo dopo passo:
+$$
+\textbf{INT-Seq}\ \frac{\langle \sigma, c_1 \rangle \to \langle \sigma', c_1' \rangle}{\langle \sigma, c_1 ; c_2 \rangle \to \langle \sigma', c_1' ; c_2 \rangle} \qquad \textbf{INT-SeqE}\ \frac{\text{--}}{\langle \sigma, \epsilon ; c_2 \rangle \to \langle \sigma, c_2 \rangle}
+$$
+
+
 
 ## 5. Implementazione
 
@@ -701,7 +702,7 @@ L'interprete è implementato come un **visitor** generato da ANTLR4 (`PseudoCode
 Il metodo `visitMain` predispone la visita del primo comando del programma e dunque segna l'inizio della computazione, in questi termini. Lo stato è mantenuto attraverso una memoria (`Mem`).
 
 ### 5.3 Gestione della memoria
-La classe `Mem` implementa una astrazione del concetto di memoria. Ogni inserimento crea una nuova istanza locale di locazione di memoria per la quale si definiscono due valori `values` e `types` (implementati attraverso le primitive del linguaggio macchina di livello inferiore nella gerarchia delle macchine astratte, ovvero il linguaggio Java, rispettivamente attraverso delle _HashMap_ per tali informazioni). Sono stati predisposti inoltre dei metodi per l'interazione con la memoria in termini di aggiunta e modifica di quanto già presente come locazione di memoria. La ricerca di una locazione di memoria riferita attraverso i ben **tipati identificatori** è possibile con accesso diretto, data le strutture dati implementate.
+La classe `Mem` implementa una astrazione del concetto di memoria. Ogni inserimento crea una nuova istanza locale di locazione di memoria per la quale si definiscono due valori `values` e `types` (implementati attraverso le primitive del linguaggio macchina di livello inferiore nella gerarchia delle macchine astratte, ovvero il linguaggio Java, rispettivamente attraverso delle _HashMap_ per tali informazioni). Sono stati predisposti inoltre dei metodi per l'interazione con la memoria in termini di aggiunta e modifica di quanto già presente come locazione di memoria. La ricerca di una locazione di memoria riferita attraverso i ben **tipati identificatori** è possibile con accesso diretto, date le strutture dati implementate.
 
 ## 6. Programmi di test
-I test sono stati predisposti attraverso l'integrazione di **JUnit 5.10.0** e **Maven**, nella classe `PseudoCodeUTest`, che predispone un insieme di 24 test di natura eterogenea, che coprono la totalità di situazioni la cui verifica o meno permette di assolvere al compito della analisi di correttezza della totalità degli strumenti implementati.
+I test sono stati predisposti attraverso l'integrazione di **JUnit 5.10.0** e **Maven**, nella classe `PseudoCodeUTests`, che predispone un insieme di 24 test di natura eterogenea, che coprono la totalità di situazioni la cui verifica o meno permette di assolvere al compito della analisi di correttezza della totalità degli strumenti implementati.
